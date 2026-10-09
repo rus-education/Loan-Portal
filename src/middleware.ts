@@ -15,11 +15,13 @@ const PUBLIC_PATHS = [
   "/favicon.ico",
 ];
 
-// Superadmin only frontend paths and user management API
+// Superadmin only frontend paths and user/system management API
 const SUPERADMIN_PATHS = [
   "/branches",
   "/users",
   "/api/users",
+  "/settings",
+  "/api/settings",
 ];
 
 export async function middleware(request: NextRequest) {
