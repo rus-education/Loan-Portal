@@ -35,10 +35,11 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 // JWT Token Handling (jose)
 // ----------------------------------------------------
 export async function createAuthToken(payload: TokenPayload): Promise<string> {
+  const expiresIn = (env.JWT_EXPIRES_IN || "7d").replace(/['"]/g, "").trim() || "7d";
   return new SignJWT({ ...payload })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime(env.JWT_EXPIRES_IN || "7d")
+    .setExpirationTime(expiresIn)
     .sign(JWT_SECRET_KEY);
 }
 
