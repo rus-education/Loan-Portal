@@ -3,7 +3,8 @@ import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 
 const AUTH_COOKIE_NAME = "loan_portal_session";
-const JWT_SECRET_STRING = process.env.JWT_SECRET || "loan-portal-production-secret-key-32-chars-minimum-entropy-2026";
+const rawSecret = (process.env.JWT_SECRET || "").trim().replace(/^["']|["']$/g, "");
+const JWT_SECRET_STRING = rawSecret && rawSecret.length >= 16 ? rawSecret : "loan-portal-production-secret-key-32-chars-minimum-entropy-2026";
 const JWT_SECRET_KEY = new TextEncoder().encode(JWT_SECRET_STRING);
 
 // Routes that do not require authentication
