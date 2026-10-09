@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { Types } from "mongoose";
+import "@/models";
 import { connectToDatabase, getDatabaseStatus } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { LoanApplication } from "@/models/LoanApplication";
@@ -41,7 +43,7 @@ export default async function HomePage() {
     completed: 0,
   };
 
-  let recentLoans: Array<{
+  interface SafeRecentLoan {
     _id: string;
     sdmId: string;
     studentName: string;
@@ -50,49 +52,85 @@ export default async function HomePage() {
     loanAmount: number;
     currentStage: string;
     status: WorkflowStatus;
-    createdAt: Date;
+    createdAt: string;
     branchId: { name: string; code: string };
-  }> = [];
+  }
+
+  let recentLoans: SafeRecentLoan[] = [];
 
   if (sessionUser && dbStatus.connected) {
-    await connectToDatabase();
+    try {
+      await connectToDatabase();
 
-    const branchFilter =
-      sessionUser.role === "BRANCH_USER" && sessionUser.branchId
-        ? { branchId: sessionUser.branchId }
-        : {};
+      let branchFilter: Record<string, unknown> = {};
+      if (sessionUser.role === "BRANCH_USER" && sessionUser.branchId) {
+        try {
+          branchFilter = { branchId: new Types.ObjectId(sessionUser.branchId) };
+        } catch {
+          branchFilter = { branchId: sessionUser.branchId };
+        }
+      }
 
-    const [statusStats, recent] = await Promise.all([
-      LoanApplication.aggregate([
-        { $match: branchFilter },
-        {
-          $group: {
-            _id: "$status",
-            count: { $sum: 1 },
+      const [statusStats, recent] = await Promise.all([
+        LoanApplication.aggregate([
+          { $match: branchFilter },
+          {
+            $group: {
+              _id: "$status",
+              count: { $sum: 1 },
+            },
           },
-        },
-      ]),
-      LoanApplication.find(branchFilter)
-        .populate("branchId", "name code")
-        .sort({ createdAt: -1 })
-        .limit(8)
-        .lean(),
-    ]);
+        ]),
+        LoanApplication.find(branchFilter)
+          .populate("branchId", "name code")
+          .sort({ createdAt: -1 })
+          .limit(8)
+          .lean(),
+      ]);
 
-    let total = 0;
-    for (const s of statusStats) {
-      const count = Number(s.count) || 0;
-      total += count;
-      if (s._id === "Pending") metrics.pending = count;
-      else if (s._id === "Under Review") metrics.underReview = count;
-      else if (s._id === "In Progress") metrics.inProgress = count;
-      else if (s._id === "Approved") metrics.approved = count;
-      else if (s._id === "Rejected") metrics.rejected = count;
-      else if (s._id === "Completed") metrics.completed = count;
+      let total = 0;
+      if (Array.isArray(statusStats)) {
+        for (const s of statusStats) {
+          const count = Number(s.count) || 0;
+          total += count;
+          if (s._id === "Pending") metrics.pending = count;
+          else if (s._id === "Under Review") metrics.underReview = count;
+          else if (s._id === "In Progress") metrics.inProgress = count;
+          else if (s._id === "Approved") metrics.approved = count;
+          else if (s._id === "Rejected") metrics.rejected = count;
+          else if (s._id === "Completed") metrics.completed = count;
+        }
+      }
+      metrics.total = total;
+
+      // Safely serialize every document to plain primitive fields to prevent RSC serialization errors
+      recentLoans = (recent || []).map((loan: any) => {
+        const branchObj =
+          loan.branchId && typeof loan.branchId === "object"
+            ? {
+                name: String(loan.branchId.name || "Branch"),
+                code: String(loan.branchId.code || ""),
+              }
+            : { name: "Branch", code: "" };
+
+        return {
+          _id: String(loan._id || ""),
+          sdmId: String(loan.sdmId || ""),
+          studentName: String(loan.studentName || ""),
+          course: String(loan.course || ""),
+          country: String(loan.country || ""),
+          loanAmount: Number(loan.loanAmount) || 0,
+          currentStage: String(loan.currentStage || "Inquiry"),
+          status: (loan.status || "Pending") as WorkflowStatus,
+          createdAt: loan.createdAt
+            ? new Date(loan.createdAt).toISOString()
+            : new Date().toISOString(),
+          branchId: branchObj,
+        };
+      });
+    } catch (err) {
+      console.error("[HomePage] Error loading dashboard data:", err);
     }
-    metrics.total = total;
-
-    recentLoans = recent as unknown as typeof recentLoans;
   }
 
   const getStatusBadgeVariant = (st: WorkflowStatus) => {
