@@ -150,8 +150,13 @@ export async function POST(request: NextRequest) {
     return response;
   } catch (err: unknown) {
     console.error("[auth] Login error:", err);
+    const errorDetails = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
     return NextResponse.json(
-      { success: false, error: "An unexpected error occurred during login" },
+      {
+        success: false,
+        error: "An unexpected error occurred during login",
+        details: errorDetails,
+      },
       { status: 500 }
     );
   }
