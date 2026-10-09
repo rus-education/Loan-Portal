@@ -23,6 +23,11 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
 
   if (!cached.promise) {
     const uri = env.MONGODB_URI;
+    if (!uri) {
+      throw new Error(
+        "MONGODB_URI is not defined. Please add the MONGODB_URI environment variable in your Vercel Project Settings (Settings -> Environment Variables)."
+      );
+    }
     const opts: mongoose.ConnectOptions = {
       bufferCommands: false,
       maxPoolSize: 10,

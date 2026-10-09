@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const envSchema = z.object({
-  MONGODB_URI: z.string().min(1, "MONGODB_URI must be set"),
+  MONGODB_URI: z.string().default(""),
   JWT_SECRET: z.string().min(16, "JWT_SECRET must be at least 16 characters"),
   JWT_EXPIRES_IN: z.string().default("7d"),
   NEXT_PUBLIC_APP_NAME: z.string().default("Loan Management Portal"),
@@ -10,7 +10,7 @@ const envSchema = z.object({
 });
 
 export const env = envSchema.parse({
-  MONGODB_URI: process.env.MONGODB_URI,
+  MONGODB_URI: process.env.MONGODB_URI || "",
   JWT_SECRET: process.env.JWT_SECRET || "loan-portal-production-secret-key-32-chars-minimum-entropy-2026",
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || "7d",
   NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME || "Loan Management Portal",

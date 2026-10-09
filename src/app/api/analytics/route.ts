@@ -29,6 +29,8 @@ const STATUS_COLORS: Record<string, string> = {
   "On Hold": "#64748b",
 };
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
   try {
     // 1. Role Guard: SUPERADMIN and ADMIN only
