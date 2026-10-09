@@ -35,12 +35,30 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 // JWT Token Handling (jose)
 // ----------------------------------------------------
 export async function createAuthToken(payload: TokenPayload): Promise<string> {
-  const expiresIn = (env.JWT_EXPIRES_IN || "7d").replace(/['"]/g, "").trim() || "7d";
-  return new SignJWT({ ...payload })
+  const jwt = new SignJWT({ ...payload })
     .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime(expiresIn)
-    .sign(JWT_SECRET_KEY);
+    .setIssuedAt();
+
+  let expirationSet = false;
+  const rawExpires = (env.JWT_EXPIRES_IN || "").replace(/['"]/g, "").trim();
+  if (rawExpires) {
+    try {
+      if (/^\d+$/.test(rawExpires)) {
+        jwt.setExpirationTime(`${rawExpires}s`);
+      } else {
+        jwt.setExpirationTime(rawExpires);
+      }
+      expirationSet = true;
+    } catch {
+      // Fallback if jose cannot parse the custom format
+    }
+  }
+
+  if (!expirationSet) {
+    jwt.setExpirationTime("7d");
+  }
+
+  return jwt.sign(JWT_SECRET_KEY);
 }
 
 export async function verifyAuthToken(token: string): Promise<TokenPayload | null> {
