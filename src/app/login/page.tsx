@@ -16,11 +16,13 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { toast } from "@/components/ui/toaster";
+import { useAuth } from "@/context/auth-context";
 
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectPath = searchParams.get("redirect") || "/";
+  const { setUser, refreshSession } = useAuth();
 
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
@@ -87,6 +89,12 @@ export default function LoginPage() {
         setIsLoading(false);
         return;
       }
+
+      // Immediately sync state into React AuthContext
+      if (data?.user) {
+        setUser(data.user);
+      }
+      await refreshSession();
 
       // Successful login
       toast.success("Authentication successful! Redirecting...");

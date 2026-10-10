@@ -174,6 +174,13 @@ export default function LoansListPage() {
       .catch((err) => console.error("Failed to load branches:", err));
   }, [isAuthLoading, currentUser]);
 
+  // Sync branch filter for branch users
+  React.useEffect(() => {
+    if (currentUser?.role === "BRANCH_USER" && currentUser.branchId) {
+      setBranchFilter(currentUser.branchId);
+    }
+  }, [currentUser]);
+
   // 2. Fetch loans whenever debounced filters, pagination, or sorting change
   React.useEffect(() => {
     if (isAuthLoading || !currentUser) return;

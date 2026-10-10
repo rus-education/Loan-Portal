@@ -20,12 +20,13 @@ interface DashboardShellProps {
 
 export function DashboardShell({
   children,
+  initialRole,
   initialUser,
   dbStatus = { connected: true, state: "connected" },
 }: DashboardShellProps) {
   const { user: authUser, role: authRole } = useAuth();
-  const effectiveUser = initialUser !== undefined ? initialUser : authUser;
-  const currentRole: UserRole | null = effectiveUser?.role || authRole || null;
+  const effectiveUser = authUser || initialUser || null;
+  const currentRole: UserRole | null = effectiveUser?.role || authRole || initialRole || null;
 
   const [isCollapsed, setIsCollapsed] = React.useState(false);
   const [isMobileNavOpen, setIsMobileNavOpen] = React.useState(false);

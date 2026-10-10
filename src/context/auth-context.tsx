@@ -35,6 +35,8 @@ export function AuthProvider({
   const [isLoading, setIsLoading] = React.useState<boolean>(!initialUser);
   const [isError, setIsError] = React.useState<boolean>(false);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
+  const userRef = React.useRef<UserSession | null>(initialUser);
+  userRef.current = user;
 
   const fetchSession = React.useCallback(async (force = false): Promise<UserSession | null> => {
     if (inFlightSessionPromise && !force) {
@@ -62,7 +64,7 @@ export function AuthProvider({
           // Non-401 server error (500, 502, etc.)
           setIsError(true);
           setErrorMessage(`Server returned status ${res.status}`);
-          return user; // Preserve existing session during temporary server errors
+          return userRef.current; // Preserve existing session during temporary server errors
         }
 
         const data = await res.json();
@@ -78,8 +80,7 @@ export function AuthProvider({
         // Network connectivity error (offline, flaky connection)
         setIsError(true);
         setErrorMessage(err instanceof Error ? err.message : "Network error");
-        // Do NOT treat a network error as proof of invalid session if user was already loaded
-        return user;
+        return userRef.current;
       } finally {
         setIsLoading(false);
         inFlightSessionPromise = null;
@@ -87,7 +88,7 @@ export function AuthProvider({
     })();
 
     return inFlightSessionPromise;
-  }, [user]);
+  }, []);
 
   // Initial load
   React.useEffect(() => {
@@ -97,6 +98,13 @@ export function AuthProvider({
       setIsLoading(false);
     }
   }, [initialUser, fetchSession]);
+
+  // Re-verify session on route change if user state is not yet hydrated
+  React.useEffect(() => {
+    if (!user && pathname && pathname !== "/login" && !pathname.startsWith("/api/")) {
+      fetchSession();
+    }
+  }, [pathname, user, fetchSession]);
 
   // Subscribe to 401 session expiration from apiFetch
   React.useEffect(() => {

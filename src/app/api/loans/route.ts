@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { Types } from "mongoose";
 import { connectToDatabase } from "@/lib/db";
 import { LoanApplication } from "@/models/LoanApplication";
 import { Branch } from "@/models/Branch";
@@ -56,11 +57,19 @@ export async function GET(request: NextRequest) {
           { status: 403 }
         );
       }
-      filter.branchId = user.branchId;
+      try {
+        filter.branchId = new Types.ObjectId(user.branchId);
+      } catch {
+        filter.branchId = user.branchId;
+      }
     } else {
       // SUPERADMIN, ADMIN, VIEWER can query across branches or filter
       if (requestedBranchId) {
-        filter.branchId = requestedBranchId;
+        try {
+          filter.branchId = new Types.ObjectId(requestedBranchId);
+        } catch {
+          filter.branchId = requestedBranchId;
+        }
       }
     }
 
