@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/toaster";
 import { formatCurrency } from "@/lib/utils";
+import { apiFetch } from "@/lib/api-client";
 
 interface ImportCsvDialogProps {
   isOpen: boolean;
@@ -98,7 +99,7 @@ export function ImportCsvDialog({
     setPreviewRows([]);
 
     try {
-      const res = await fetch("/api/loans/import", {
+      const res = await apiFetch("/api/loans/import", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ csvContent: content, dryRun: true }),
@@ -137,7 +138,7 @@ export function ImportCsvDialog({
 
     setIsImporting(true);
     try {
-      const res = await fetch("/api/loans/import", {
+      const res = await apiFetch("/api/loans/import", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ csvContent: csvText, dryRun: false }),

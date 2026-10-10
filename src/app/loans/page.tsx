@@ -32,6 +32,9 @@ import { TableSkeleton } from "@/components/feedback/table-skeleton";
 import { toast } from "@/components/ui/toaster";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { ImportCsvDialog } from "@/components/loans/import-csv-dialog";
+import { useAuth } from "@/context/auth-context";
+import { useDebounce } from "@/hooks/use-debounce";
+import { apiFetch } from "@/lib/api-client";
 import type { UserSession, WorkflowStatus } from "@/types";
 
 interface LoanListItem {
@@ -90,13 +93,14 @@ const DATE_PRESETS = [
 ];
 
 export default function LoansListPage() {
-  const [currentUser, setCurrentUser] = React.useState<UserSession | null>(null);
+  const { user: currentUser, isLoading: isAuthLoading } = useAuth();
   const [branches, setBranches] = React.useState<BranchItem[]>([]);
   const [loans, setLoans] = React.useState<LoanListItem[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isExporting, setIsExporting] = React.useState(false);
   const [isImportOpen, setIsImportOpen] = React.useState(false);
   const [showAdvancedSearch, setShowAdvancedSearch] = React.useState(false);
+  const [fetchError, setFetchError] = React.useState<string | null>(null);
 
   // Global search & targeted search
   const [searchTerm, setSearchTerm] = React.useState(() => {
@@ -146,48 +150,46 @@ export default function LoansListPage() {
 
   // Server-side pagination state
   const [page, setPage] = React.useState(1);
-  const [limit, setLimit] = React.useState(15);
+  const [limit, setLimit] = React.useState(25);
   const [totalPages, setTotalPages] = React.useState(1);
   const [totalCount, setTotalCount] = React.useState(0);
   const [reloadTrigger, setReloadTrigger] = React.useState(0);
 
-  // 1. Fetch current user session
-  React.useEffect(() => {
-    fetch("/api/auth/me")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (data?.success && data.user) {
-          setCurrentUser(data.user);
-        }
-      })
-      .catch((err) => console.error(err));
-  }, []);
+  // Debounce search inputs to prevent excessive API requests
+  const debouncedSearch = useDebounce(searchTerm, 300);
+  const debouncedSdmId = useDebounce(sdmIdFilter, 300);
+  const debouncedStudentName = useDebounce(studentNameFilter, 300);
+  const debouncedContact = useDebounce(contactNumberFilter, 300);
 
-  // 2. Fetch branches for branch filter dropdown (for Admin / Superadmin / Viewer)
+  // 1. Fetch branches for branch filter dropdown (for Admin / Superadmin / Viewer)
   React.useEffect(() => {
-    fetch("/api/branches")
-      .then((r) => (r.ok ? r.json() : null))
+    if (isAuthLoading || !currentUser) return;
+    apiFetch("/api/branches")
+      .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data?.success && Array.isArray(data.data)) {
           setBranches(data.data);
         }
       })
       .catch((err) => console.error("Failed to load branches:", err));
-  }, []);
+  }, [isAuthLoading, currentUser]);
 
-  // 3. Fetch loans whenever filters, pagination, or sorting change
+  // 2. Fetch loans whenever debounced filters, pagination, or sorting change
   React.useEffect(() => {
+    if (isAuthLoading || !currentUser) return;
+
     let ignore = false;
     async function load() {
       setIsLoading(true);
+      setFetchError(null);
       try {
         const params = new URLSearchParams();
         params.set("page", String(page));
         params.set("limit", String(limit));
-        if (searchTerm.trim()) params.set("search", searchTerm.trim());
-        if (sdmIdFilter.trim()) params.set("sdmId", sdmIdFilter.trim());
-        if (studentNameFilter.trim()) params.set("studentName", studentNameFilter.trim());
-        if (contactNumberFilter.trim()) params.set("contactNumber", contactNumberFilter.trim());
+        if (debouncedSearch.trim()) params.set("search", debouncedSearch.trim());
+        if (debouncedSdmId.trim()) params.set("sdmId", debouncedSdmId.trim());
+        if (debouncedStudentName.trim()) params.set("studentName", debouncedStudentName.trim());
+        if (debouncedContact.trim()) params.set("contactNumber", debouncedContact.trim());
         if (statusFilter) params.set("status", statusFilter);
         if (branchFilter) params.set("branchId", branchFilter);
         if (intakeMonthFilter) params.set("intakeMonth", intakeMonthFilter);
@@ -205,17 +207,21 @@ export default function LoansListPage() {
         params.set("sortBy", sortBy);
         params.set("sortOrder", sortOrder);
 
-        const res = await fetch(`/api/loans?${params.toString()}`);
-        if (res.ok) {
-          const data = await res.json();
-          if (!ignore && data.success) {
-            setLoans(data.data || []);
-            setTotalPages(data.pagination?.totalPages || 1);
-            setTotalCount(data.pagination?.total || 0);
-          }
+        const res = await apiFetch(`/api/loans?${params.toString()}`);
+        const data = await res.json();
+        if (!ignore && data?.success) {
+          setLoans(data.data || []);
+          setTotalPages(data.pagination?.totalPages || 1);
+          setTotalCount(data.pagination?.total || 0);
+        } else if (!ignore && !res.ok) {
+          setFetchError(data?.error || "Failed to load loan applications.");
         }
-      } catch (err) {
-        console.error("Failed to fetch loans:", err);
+      } catch (err: unknown) {
+        if (!ignore) {
+          const msg = err instanceof Error ? err.message : "Failed to fetch loans";
+          setFetchError(msg);
+          console.error("Failed to fetch loans:", err);
+        }
       } finally {
         if (!ignore) {
           setIsLoading(false);
@@ -227,12 +233,14 @@ export default function LoansListPage() {
       ignore = true;
     };
   }, [
+    isAuthLoading,
+    currentUser,
     page,
     limit,
-    searchTerm,
-    sdmIdFilter,
-    studentNameFilter,
-    contactNumberFilter,
+    debouncedSearch,
+    debouncedSdmId,
+    debouncedStudentName,
+    debouncedContact,
     statusFilter,
     branchFilter,
     intakeMonthFilter,
@@ -717,6 +725,17 @@ export default function LoansListPage() {
             {isLoading ? (
               <div className="p-6">
                 <TableSkeleton rows={8} columns={7} />
+              </div>
+            ) : fetchError ? (
+              <div className="p-8 text-center space-y-3">
+                <p className="text-sm text-destructive font-medium">{fetchError}</p>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setReloadTrigger((r) => r + 1)}
+                >
+                  Retry Loading Records
+                </Button>
               </div>
             ) : loans.length === 0 ? (
               <EmptyState

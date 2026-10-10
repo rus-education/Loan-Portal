@@ -17,10 +17,10 @@ export async function GET(request: NextRequest) {
     const dbStatus = await getDatabaseStatus();
 
     const [branchCount, userCount, loanCount, auditCount] = await Promise.all([
-      Branch.countDocuments(),
-      User.countDocuments(),
-      LoanApplication.countDocuments(),
-      AuditLog.countDocuments(),
+      Branch.estimatedDocumentCount(),
+      User.estimatedDocumentCount(),
+      LoanApplication.estimatedDocumentCount(),
+      AuditLog.estimatedDocumentCount(),
     ]);
 
     return NextResponse.json({

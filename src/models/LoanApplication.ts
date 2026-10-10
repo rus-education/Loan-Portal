@@ -152,19 +152,18 @@ const LoanApplicationSchema = new Schema<ILoanApplication>(
   }
 );
 
-// Indexes for high-frequency search, filtering, and server-side pagination
-LoanApplicationSchema.index({ createdAt: -1 });
-LoanApplicationSchema.index({ intakeMonth: 1, intakeYear: 1 });
-LoanApplicationSchema.index({ branchId: 1, createdAt: -1 });
-LoanApplicationSchema.index({ branchId: 1, status: 1 });
-LoanApplicationSchema.index({ branchId: 1, status: 1, createdAt: -1 });
-LoanApplicationSchema.index({ branchId: 1, sdmId: 1 });
-LoanApplicationSchema.index({ status: 1, createdAt: -1 });
-LoanApplicationSchema.index({ status: 1, loanAmount: -1 });
-LoanApplicationSchema.index({ sdmId: 1, studentName: 1 });
+// Indexes for high-frequency search, filtering, and server-side pagination at 50,000+ scale
+LoanApplicationSchema.index({ createdAt: -1, _id: -1 });
+LoanApplicationSchema.index({ branchId: 1, createdAt: -1, _id: -1 });
+LoanApplicationSchema.index({ branchId: 1, status: 1, createdAt: -1, _id: -1 });
+LoanApplicationSchema.index({ status: 1, createdAt: -1, _id: -1 });
+LoanApplicationSchema.index({ status: 1, loanAmount: -1, _id: -1 });
+LoanApplicationSchema.index({ intakeYear: 1, intakeMonth: 1, createdAt: -1 });
+LoanApplicationSchema.index({ sdmId: 1 });
 LoanApplicationSchema.index({ studentName: 1 });
 LoanApplicationSchema.index({ contactNumber: 1 });
-LoanApplicationSchema.index({ loanAmount: -1 });
+LoanApplicationSchema.index({ loanAmount: -1, _id: -1 });
+LoanApplicationSchema.index({ branchId: 1, sdmId: 1 });
 
 export const LoanApplication: Model<ILoanApplication> =
   mongoose.models.LoanApplication ||

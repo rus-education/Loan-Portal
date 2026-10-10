@@ -20,7 +20,8 @@ import { Badge } from "@/components/ui/badge";
 import { CardSkeletonGrid } from "@/components/feedback/table-skeleton";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { toast } from "@/components/ui/toaster";
-import type { UserSession } from "@/types";
+import { useAuth } from "@/context/auth-context";
+import { apiFetch } from "@/lib/api-client";
 
 interface SystemSettingsData {
   appName: string;
@@ -49,7 +50,7 @@ interface SystemSettingsData {
 }
 
 export default function SystemSettingsPage() {
-  const [currentUser, setCurrentUser] = React.useState<UserSession | null>(null);
+  const { user: currentUser, isLoading: isAuthLoading } = useAuth();
   const [settings, setSettings] = React.useState<SystemSettingsData | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isSaving, setIsSaving] = React.useState(false);
@@ -60,24 +61,18 @@ export default function SystemSettingsPage() {
   const [isMaintenanceModalOpen, setIsMaintenanceModalOpen] = React.useState(false);
   const [maintenanceState, setMaintenanceState] = React.useState(false);
 
-  // 1. Fetch current session
+  // Fetch system settings
   React.useEffect(() => {
-    fetch("/api/auth/me")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (data?.success && data.user) {
-          setCurrentUser(data.user);
-        }
-      })
-      .catch((err) => console.error(err));
-  }, []);
+    if (isAuthLoading) return;
+    if (!currentUser || currentUser.role !== "SUPERADMIN") {
+      setIsLoading(false);
+      return;
+    }
 
-  // 2. Fetch system settings
-  React.useEffect(() => {
     let ignore = false;
     async function load() {
       try {
-        const res = await fetch("/api/settings");
+        const res = await apiFetch("/api/settings");
         if (res.ok) {
           const data = await res.json();
           if (!ignore && data.success) {
@@ -97,14 +92,14 @@ export default function SystemSettingsPage() {
     return () => {
       ignore = true;
     };
-  }, [reloadTrigger]);
+  }, [currentUser, isAuthLoading, reloadTrigger]);
 
   // Handle Maintenance Toggle
   const handleToggleMaintenance = async () => {
     setIsSaving(true);
     try {
       const nextState = !maintenanceState;
-      const res = await fetch("/api/settings", {
+      const res = await apiFetch("/api/settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ maintenanceMode: nextState }),

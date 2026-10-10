@@ -41,7 +41,9 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { toast } from "@/components/ui/toaster";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatCurrency, formatDate, formatDateTime } from "@/lib/utils";
-import type { UserSession, WorkflowStatus, StatusHistoryItem } from "@/types";
+import { useAuth } from "@/context/auth-context";
+import { apiFetch } from "@/lib/api-client";
+import type { WorkflowStatus, StatusHistoryItem } from "@/types";
 
 interface LoanDetail {
   _id: string;
@@ -116,7 +118,7 @@ export default function LoanDetailPage() {
   const params = useParams();
   const loanId = params.id as string;
 
-  const [currentUser, setCurrentUser] = React.useState<UserSession | null>(null);
+  const { user: currentUser, isLoading: isAuthLoading } = useAuth();
   const [loan, setLoan] = React.useState<LoanDetail | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
@@ -156,24 +158,18 @@ export default function LoanDetailPage() {
 
   const [reloadTrigger, setReloadTrigger] = React.useState(0);
 
-  // 1. Fetch current user session
+  // Fetch loan detail
   React.useEffect(() => {
-    fetch("/api/auth/me")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (data?.success && data.user) {
-          setCurrentUser(data.user);
-        }
-      })
-      .catch((err) => console.error("Session error:", err));
-  }, []);
+    if (isAuthLoading) return;
+    if (!currentUser) {
+      setIsLoading(false);
+      return;
+    }
 
-  // 2. Fetch loan detail
-  React.useEffect(() => {
     let ignore = false;
     async function load() {
       try {
-        const res = await fetch(`/api/loans/${loanId}`);
+        const res = await apiFetch(`/api/loans/${loanId}`);
         const data = await res.json();
 
         if (ignore) return;
@@ -213,7 +209,7 @@ export default function LoanDetailPage() {
     return () => {
       ignore = true;
     };
-  }, [loanId, reloadTrigger]);
+  }, [loanId, isAuthLoading, currentUser, reloadTrigger]);
 
   const isAdminOrSuper = currentUser?.role === "ADMIN" || currentUser?.role === "SUPERADMIN";
   const isBranchUser = currentUser?.role === "BRANCH_USER";
@@ -244,7 +240,7 @@ export default function LoanDetailPage() {
         payload.statusRemarks = transitionNote.trim();
       }
 
-      const res = await fetch(`/api/loans/${loanId}`, {
+      const res = await apiFetch(`/api/loans/${loanId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -280,7 +276,7 @@ export default function LoanDetailPage() {
     setBranchSaveSuccess(null);
 
     try {
-      const res = await fetch(`/api/loans/${loanId}`, {
+      const res = await apiFetch(`/api/loans/${loanId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ branchRemarks }),
@@ -313,7 +309,7 @@ export default function LoanDetailPage() {
     setCorrectionError(null);
 
     try {
-      const res = await fetch(`/api/loans/${loanId}`, {
+      const res = await apiFetch(`/api/loans/${loanId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -355,7 +351,7 @@ export default function LoanDetailPage() {
     setIsDeleting(true);
 
     try {
-      const res = await fetch(`/api/loans/${loanId}`, {
+      const res = await apiFetch(`/api/loans/${loanId}`, {
         method: "DELETE",
       });
 

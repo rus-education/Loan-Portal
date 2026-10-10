@@ -43,7 +43,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { AnalyticsCustomTooltip } from "@/components/analytics/custom-tooltip";
 import { formatCurrency, formatCompactINR } from "@/lib/utils";
-import type { UserSession } from "@/types";
+import { useAuth } from "@/context/auth-context";
+import { apiFetch } from "@/lib/api-client";
 
 interface StatisticsData {
   totalApplications: number;
@@ -120,8 +121,7 @@ const PRESET_RANGES = [
 ];
 
 export default function AnalyticsPage() {
-  const [currentUser, setCurrentUser] = React.useState<UserSession | null>(null);
-  const [isAuthLoading, setIsAuthLoading] = React.useState(true);
+  const { user: currentUser, isLoading: isAuthLoading } = useAuth();
   const isMounted = React.useSyncExternalStore(
     () => () => {},
     () => true,
@@ -139,22 +139,11 @@ export default function AnalyticsPage() {
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
 
-  // 1. Fetch current session
+  // Fetch analytics data
   React.useEffect(() => {
-    fetch("/api/auth/me")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (data?.success && data.user) {
-          setCurrentUser(data.user);
-        }
-      })
-      .catch((err) => console.error("Auth check failed:", err))
-      .finally(() => setIsAuthLoading(false));
-  }, []);
-
-  // 2. Fetch analytics data
-  React.useEffect(() => {
+    if (isAuthLoading) return;
     if (!currentUser || (currentUser.role !== "SUPERADMIN" && currentUser.role !== "ADMIN")) {
+      setIsLoading(false);
       return;
     }
 
@@ -171,7 +160,7 @@ export default function AnalyticsPage() {
           if (customEndDate) params.set("endDate", customEndDate);
         }
 
-        const res = await fetch(`/api/analytics?${params.toString()}`);
+        const res = await apiFetch(`/api/analytics?${params.toString()}`);
         const data: AnalyticsApiResponse = await res.json();
 
         if (!ignore) {
@@ -197,7 +186,7 @@ export default function AnalyticsPage() {
     return () => {
       ignore = true;
     };
-  }, [currentUser, selectedRange, customStartDate, customEndDate, reloadTrigger]);
+  }, [currentUser, isAuthLoading, selectedRange, customStartDate, customEndDate, reloadTrigger]);
 
   const handleApplyCustomFilter = (e: React.FormEvent) => {
     e.preventDefault();

@@ -31,7 +31,8 @@ import {
   INCOME_SOURCES,
 } from "@/lib/validations/loan";
 import { formatCurrency } from "@/lib/utils";
-import type { UserSession } from "@/types";
+import { useAuth } from "@/context/auth-context";
+import { apiFetch } from "@/lib/api-client";
 
 interface BranchOption {
   _id: string;
@@ -41,9 +42,8 @@ interface BranchOption {
 
 export default function NewLoanApplicationPage() {
   const router = useRouter();
-  const [currentUser, setCurrentUser] = React.useState<UserSession | null>(null);
+  const { user: currentUser, isLoading: isLoadingUser } = useAuth();
   const [branches, setBranches] = React.useState<BranchOption[]>([]);
-  const [isLoadingUser, setIsLoadingUser] = React.useState(true);
   const [submitError, setSubmitError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
@@ -72,26 +72,21 @@ export default function NewLoanApplicationPage() {
 
   const watchedAmount = useWatch({ control, name: "loanAmount" }) || 0;
 
-  // Load session user and branches list
+  // Initialize branch values when user is loaded
   React.useEffect(() => {
-    async function loadData() {
+    if (currentUser?.branchId) {
+      setValue("branchId", currentUser.branchId);
+      setValue("branchName", currentUser.branchName || "Assigned Branch");
+    }
+  }, [currentUser, setValue]);
+
+  // Load branches list if needed
+  React.useEffect(() => {
+    if (isLoadingUser || !currentUser) return;
+
+    async function loadBranches() {
       try {
-        const [meRes, branchRes] = await Promise.all([
-          fetch("/api/auth/me"),
-          fetch("/api/branches"),
-        ]);
-
-        if (meRes.ok) {
-          const meData = await meRes.json();
-          if (meData.success && meData.user) {
-            setCurrentUser(meData.user);
-            if (meData.user.branchId) {
-              setValue("branchId", meData.user.branchId);
-              setValue("branchName", meData.user.branchName || "Assigned Branch");
-            }
-          }
-        }
-
+        const branchRes = await apiFetch("/api/branches");
         if (branchRes.ok) {
           const bData = await branchRes.json();
           if (bData.success && Array.isArray(bData.data)) {
@@ -99,13 +94,11 @@ export default function NewLoanApplicationPage() {
           }
         }
       } catch (err) {
-        console.error("Failed to load user or branches:", err);
-      } finally {
-        setIsLoadingUser(false);
+        console.error("Failed to load branches:", err);
       }
     }
-    loadData();
-  }, [setValue]);
+    loadBranches();
+  }, [isLoadingUser, currentUser]);
 
   const onSubmit = async (data: LoanFormData) => {
     if (isSubmitting) return;
@@ -132,7 +125,7 @@ export default function NewLoanApplicationPage() {
         payload.branchId = data.branchId;
       }
 
-      const res = await fetch("/api/loans", {
+      const res = await apiFetch("/api/loans", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

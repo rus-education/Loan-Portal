@@ -26,6 +26,9 @@ import { TableSkeleton } from "@/components/feedback/table-skeleton";
 import { toast } from "@/components/ui/toaster";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { useAuth } from "@/context/auth-context";
+import { useDebounce } from "@/hooks/use-debounce";
+import { apiFetch } from "@/lib/api-client";
 import type { UserSession } from "@/types";
 
 interface BranchData {
@@ -53,12 +56,15 @@ interface AssignedUser {
 }
 
 export default function BranchesPage() {
-  const [currentUser, setCurrentUser] = React.useState<UserSession | null>(null);
+  const { user: currentUser, isLoading: isAuthLoading } = useAuth();
   const [branches, setBranches] = React.useState<BranchData[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("all");
   const [reloadTrigger, setReloadTrigger] = React.useState(0);
+  const [fetchError, setFetchError] = React.useState<string | null>(null);
+
+  const debouncedSearch = useDebounce(searchTerm, 300);
 
   // Modals state
   const [isCreateOpen, setIsCreateOpen] = React.useState(false);
@@ -87,38 +93,31 @@ export default function BranchesPage() {
   // Success alert
   const [successBanner, setSuccessBanner] = React.useState<string | null>(null);
 
-  // 1. Fetch current user
+  // Fetch branches with aggregated stats
   React.useEffect(() => {
-    fetch("/api/auth/me")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (data?.success && data.user) {
-          setCurrentUser(data.user);
-        }
-      })
-      .catch((err) => console.error(err));
-  }, []);
+    if (isAuthLoading || !currentUser) return;
 
-  // 2. Fetch branches with aggregated stats
-  React.useEffect(() => {
     let ignore = false;
     async function load() {
       setIsLoading(true);
+      setFetchError(null);
       try {
         const params = new URLSearchParams();
         params.set("includeStats", "true");
-        if (searchTerm.trim()) params.set("search", searchTerm.trim());
+        if (debouncedSearch.trim()) params.set("search", debouncedSearch.trim());
         if (statusFilter !== "all") params.set("status", statusFilter);
 
-        const res = await fetch(`/api/branches?${params.toString()}`);
-        if (res.ok) {
-          const data = await res.json();
-          if (!ignore && data.success) {
-            setBranches(data.data || []);
-          }
+        const res = await apiFetch(`/api/branches?${params.toString()}`);
+        const data = await res.json();
+        if (!ignore && data?.success) {
+          setBranches(data.data || []);
         }
-      } catch (err) {
-        console.error("Failed to load branches:", err);
+      } catch (err: unknown) {
+        if (!ignore) {
+          const msg = err instanceof Error ? err.message : "Failed to load branches";
+          setFetchError(msg);
+          console.error("Failed to load branches:", err);
+        }
       } finally {
         if (!ignore) {
           setIsLoading(false);
@@ -129,7 +128,7 @@ export default function BranchesPage() {
     return () => {
       ignore = true;
     };
-  }, [searchTerm, statusFilter, reloadTrigger]);
+  }, [isAuthLoading, currentUser, debouncedSearch, statusFilter, reloadTrigger]);
 
   // Load assigned users for selected branch
   React.useEffect(() => {
@@ -172,7 +171,7 @@ export default function BranchesPage() {
     setCreateError(null);
 
     try {
-      const res = await fetch("/api/branches", {
+      const res = await apiFetch("/api/branches", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -212,7 +211,7 @@ export default function BranchesPage() {
     setEditError(null);
 
     try {
-      const res = await fetch(`/api/branches/${editBranch._id}`, {
+      const res = await apiFetch(`/api/branches/${editBranch._id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -248,7 +247,7 @@ export default function BranchesPage() {
 
     try {
       const nextStatus = toggleBranch.status === "active" ? "inactive" : "active";
-      const res = await fetch(`/api/branches/${toggleBranch._id}`, {
+      const res = await apiFetch(`/api/branches/${toggleBranch._id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: nextStatus }),

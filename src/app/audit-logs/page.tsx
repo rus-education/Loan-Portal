@@ -23,7 +23,8 @@ import { EmptyState } from "@/components/feedback/empty-state";
 import { TableSkeleton } from "@/components/feedback/table-skeleton";
 import { toast } from "@/components/ui/toaster";
 import { formatDateTime } from "@/lib/utils";
-import type { UserSession } from "@/types";
+import { useAuth } from "@/context/auth-context";
+import { apiFetch } from "@/lib/api-client";
 
 interface AuditLogItem {
   _id: string;
@@ -71,7 +72,7 @@ const ENTITY_OPTIONS = [
 ];
 
 export default function AuditLogsPage() {
-  const [currentUser, setCurrentUser] = React.useState<UserSession | null>(null);
+  const { user: currentUser, isLoading: isAuthLoading } = useAuth();
   const [logs, setLogs] = React.useState<AuditLogItem[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
 
@@ -87,20 +88,14 @@ export default function AuditLogsPage() {
   // Inspect Diff Modal
   const [inspectItem, setInspectItem] = React.useState<AuditLogItem | null>(null);
 
-  // 1. Fetch current session
+  // Fetch audit logs
   React.useEffect(() => {
-    fetch("/api/auth/me")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (data?.success && data.user) {
-          setCurrentUser(data.user);
-        }
-      })
-      .catch((err) => console.error(err));
-  }, []);
+    if (isAuthLoading) return;
+    if (!currentUser || (currentUser.role !== "SUPERADMIN" && currentUser.role !== "ADMIN")) {
+      setIsLoading(false);
+      return;
+    }
 
-  // 2. Fetch audit logs
-  React.useEffect(() => {
     let ignore = false;
     async function load() {
       setIsLoading(true);
@@ -111,7 +106,7 @@ export default function AuditLogsPage() {
         if (actionFilter) params.set("action", actionFilter);
         if (entityFilter) params.set("entity", entityFilter);
 
-        const res = await fetch(`/api/audit-logs?${params.toString()}`);
+        const res = await apiFetch(`/api/audit-logs?${params.toString()}`);
         if (res.ok) {
           const data = await res.json();
           if (!ignore && data.success) {
@@ -130,7 +125,7 @@ export default function AuditLogsPage() {
     return () => {
       ignore = true;
     };
-  }, [page, limit, actionFilter, entityFilter, reloadTrigger]);
+  }, [currentUser, isAuthLoading, page, limit, actionFilter, entityFilter, reloadTrigger]);
 
   const getActionBadgeVariant = (action: string) => {
     if (action.includes("LOGIN") || action.includes("AUTH")) return "info" as const;

@@ -29,6 +29,9 @@ import { TableSkeleton } from "@/components/feedback/table-skeleton";
 import { toast } from "@/components/ui/toaster";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { formatDate, formatDateTime } from "@/lib/utils";
+import { useAuth } from "@/context/auth-context";
+import { useDebounce } from "@/hooks/use-debounce";
+import { apiFetch } from "@/lib/api-client";
 import type { UserRole, UserSession } from "@/types";
 
 interface UserItem {
@@ -57,10 +60,11 @@ interface BranchOption {
 }
 
 export default function UserManagementPage() {
-  const [currentUser, setCurrentUser] = React.useState<UserSession | null>(null);
+  const { user: currentUser, isLoading: isAuthLoading } = useAuth();
   const [users, setUsers] = React.useState<UserItem[]>([]);
   const [branches, setBranches] = React.useState<BranchOption[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
+  const [fetchError, setFetchError] = React.useState<string | null>(null);
 
   // Filters state with lazy initialization
   const [searchTerm, setSearchTerm] = React.useState(() => {
@@ -78,6 +82,8 @@ export default function UserManagementPage() {
   const [branchFilter, setBranchFilter] = React.useState<string>("ALL");
   const [statusFilter, setStatusFilter] = React.useState<string>("ALL");
   const [reloadTrigger, setReloadTrigger] = React.useState(0);
+
+  const debouncedSearch = useDebounce(searchTerm, 300);
 
   // Create User Modal
   const [isCreateOpen, setIsCreateOpen] = React.useState(false);
@@ -115,60 +121,56 @@ export default function UserManagementPage() {
   // Feedback Notification Banner
   const [successBanner, setSuccessBanner] = React.useState<string | null>(null);
 
-  // 1. Fetch current session user
+  // 1. Fetch branches for branch assignment dropdowns
   React.useEffect(() => {
-    fetch("/api/auth/me")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (data?.success && data.user) {
-          setCurrentUser(data.user);
-        }
-      })
-      .catch((err) => console.error("Session error:", err));
-  }, []);
-
-  // 2. Fetch branches for branch assignment dropdowns
-  React.useEffect(() => {
-    fetch("/api/branches")
-      .then((r) => (r.ok ? r.json() : null))
+    if (isAuthLoading || !currentUser) return;
+    apiFetch("/api/branches")
+      .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data?.success && Array.isArray(data.data)) {
           setBranches(data.data);
         }
       })
       .catch((err) => console.error("Branches error:", err));
-  }, []);
+  }, [isAuthLoading, currentUser]);
 
-  // 3. Fetch users based on filters
+  // 2. Fetch users based on filters
   React.useEffect(() => {
+    if (isAuthLoading || !currentUser) return;
+
     let ignore = false;
     async function load() {
       setIsLoading(true);
+      setFetchError(null);
       try {
         const params = new URLSearchParams();
-        if (searchTerm.trim()) params.set("search", searchTerm.trim());
+        if (debouncedSearch.trim()) params.set("search", debouncedSearch.trim());
         if (roleFilter !== "ALL") params.set("role", roleFilter);
         if (branchFilter !== "ALL") params.set("branchId", branchFilter);
         if (statusFilter !== "ALL") params.set("status", statusFilter);
 
-        const res = await fetch(`/api/users?${params.toString()}`);
-        if (res.ok) {
-          const data = await res.json();
-          if (!ignore && data.success) {
-            setUsers(data.data || []);
-          }
+        const res = await apiFetch(`/api/users?${params.toString()}`);
+        const data = await res.json();
+        if (!ignore && data?.success) {
+          setUsers(data.data || []);
         }
-      } catch (err) {
-        console.error("Failed to load users:", err);
+      } catch (err: unknown) {
+        if (!ignore) {
+          const msg = err instanceof Error ? err.message : "Failed to load users";
+          setFetchError(msg);
+          console.error("Users error:", err);
+        }
       } finally {
-        if (!ignore) setIsLoading(false);
+        if (!ignore) {
+          setIsLoading(false);
+        }
       }
     }
     load();
     return () => {
       ignore = true;
     };
-  }, [searchTerm, roleFilter, branchFilter, statusFilter, reloadTrigger]);
+  }, [isAuthLoading, currentUser, debouncedSearch, roleFilter, branchFilter, statusFilter, reloadTrigger]);
 
   // Metric counts
   const totalUsersCount = users.length;
@@ -205,7 +207,7 @@ export default function UserManagementPage() {
     }
 
     try {
-      const res = await fetch("/api/users", {
+      const res = await apiFetch("/api/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -258,7 +260,7 @@ export default function UserManagementPage() {
     }
 
     try {
-      const res = await fetch(`/api/users/${editUser._id}`, {
+      const res = await apiFetch(`/api/users/${editUser._id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -298,7 +300,7 @@ export default function UserManagementPage() {
     setResetError(null);
 
     try {
-      const res = await fetch(`/api/users/${resetUser._id}/reset-password`, {
+      const res = await apiFetch(`/api/users/${resetUser._id}/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ newPassword }),
@@ -330,7 +332,7 @@ export default function UserManagementPage() {
 
     try {
       const nextStatus = toggleUser.status === "active" ? "inactive" : "active";
-      const res = await fetch(`/api/users/${toggleUser._id}`, {
+      const res = await apiFetch(`/api/users/${toggleUser._id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: nextStatus }),

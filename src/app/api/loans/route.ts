@@ -35,7 +35,8 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get("status");
     const search = searchParams.get("search");
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
-    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "50", 10)));
+    const limitParam = parseInt(searchParams.get("limit") || "25", 10);
+    const limit = [25, 50, 100].includes(limitParam) ? limitParam : 25;
     const skip = (page - 1) * limit;
 
     const filter: Record<string, unknown> = {};
@@ -134,26 +135,32 @@ export async function GET(request: NextRequest) {
       filter.createdAt = dateQuery;
     }
 
-    // Column sorting
+    // Stable column sorting with unique tie-breaker to prevent pagination duplication/skipping
     const sortBy = searchParams.get("sortBy") || "createdAt";
     const sortOrder = searchParams.get("sortOrder") === "asc" ? 1 : -1;
     const allowedSortFields = ["createdAt", "loanAmount", "studentName", "status", "sdmId", "intakeYear"];
     const sortField = allowedSortFields.includes(sortBy) ? sortBy : "createdAt";
-    const sortConfig: Record<string, 1 | -1> = { [sortField]: sortOrder as 1 | -1 };
+    const sortConfig: Record<string, 1 | -1> = {
+      [sortField]: sortOrder as 1 | -1,
+      _id: sortOrder as 1 | -1,
+    };
+
+    const hasFilters = Object.keys(filter).length > 0;
 
     const [loans, total] = await Promise.all([
       LoanApplication.find(filter)
+        .select("sdmId studentName contactNumber branchId course country loanAmount intakeMonth intakeYear currentStage status branchRemarks adminRemarks createdAt updatedAt")
         .populate("branchId", "name code status")
-        .populate("createdBy", "name email role")
-        .populate("updatedBy", "name email role")
         .sort(sortConfig)
         .skip(skip)
         .limit(limit)
         .lean(),
-      LoanApplication.countDocuments(filter),
+      hasFilters
+        ? LoanApplication.countDocuments(filter)
+        : LoanApplication.estimatedDocumentCount(),
     ]);
 
-    const totalPages = Math.ceil(total / limit);
+    const totalPages = Math.max(1, Math.ceil(total / limit));
 
     return NextResponse.json({
       success: true,

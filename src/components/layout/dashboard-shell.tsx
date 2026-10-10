@@ -5,6 +5,7 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { PageTransition } from "@/components/motion/motion-components";
+import { useAuth } from "@/context/auth-context";
 import type { UserRole, UserSession } from "@/types";
 
 interface DashboardShellProps {
@@ -23,36 +24,26 @@ export function DashboardShell({
   initialUser,
   dbStatus = { connected: true, state: "connected" },
 }: DashboardShellProps) {
-  const [role, setRole] = React.useState<UserRole>(initialUser?.role || initialRole || "SUPERADMIN");
+  const { user: authUser } = useAuth();
+  const effectiveUser = initialUser || authUser;
+
+  const [role, setRole] = React.useState<UserRole>(
+    effectiveUser?.role || initialRole || "SUPERADMIN"
+  );
   const [isCollapsed, setIsCollapsed] = React.useState(false);
   const [isMobileNavOpen, setIsMobileNavOpen] = React.useState(false);
 
-  const mockUsers: Record<UserRole, { name: string; email: string; branchName?: string }> = {
-    SUPERADMIN: {
-      name: initialUser?.role === "SUPERADMIN" ? initialUser.name : "Master SuperAdmin",
-      email: initialUser?.role === "SUPERADMIN" ? initialUser.email : "superadmin@loanportal.internal",
-      branchName: "National Central HQ",
-    },
-    ADMIN: {
-      name: initialUser?.role === "ADMIN" ? initialUser.name : "Senior Loan Admin",
-      email: initialUser?.role === "ADMIN" ? initialUser.email : "admin@loanportal.internal",
-      branchName: "National Processing Hub",
-    },
-    BRANCH_USER: {
-      name: initialUser?.role === "BRANCH_USER" ? initialUser.name : "Delhi Branch Officer",
-      email: initialUser?.role === "BRANCH_USER" ? initialUser.email : "delhi.branch@loanportal.internal",
-      branchName: initialUser?.branchName || "New Delhi Regional HQ",
-    },
-    VIEWER: {
-      name: initialUser?.role === "VIEWER" ? initialUser.name : "Executive Auditor",
-      email: initialUser?.role === "VIEWER" ? initialUser.email : "viewer@loanportal.internal",
-      branchName: "All Branches (Auditor)",
-    },
-  };
+  React.useEffect(() => {
+    if (effectiveUser?.role) {
+      setRole(effectiveUser.role);
+    }
+  }, [effectiveUser?.role]);
 
   const currentUser = {
-    ...mockUsers[role],
-    role,
+    name: effectiveUser?.name || "System User",
+    email: effectiveUser?.email || "user@loanportal.internal",
+    role: effectiveUser?.role || role,
+    branchName: effectiveUser?.branchName || undefined,
   };
 
   return (

@@ -8,6 +8,8 @@ import { toast } from "@/components/ui/toaster";
 import type { UserRole } from "@/types";
 import { useRouter } from "next/navigation";
 
+import { useAuth } from "@/context/auth-context";
+
 interface UserMenuProps {
   user?: {
     name: string;
@@ -29,6 +31,7 @@ export function UserMenu({
   onRoleChange,
   onLogout,
 }: UserMenuProps) {
+  const { logout } = useAuth();
   const router = useRouter();
   const [isOpen, setIsOpen] = React.useState(false);
   const menuRef = React.useRef<HTMLDivElement>(null);
@@ -40,13 +43,7 @@ export function UserMenu({
       onLogout();
       return;
     }
-    try {
-      await fetch("/api/auth/logout", { method: "POST" });
-      router.push("/login");
-      router.refresh();
-    } catch {
-      router.push("/login");
-    }
+    await logout();
   };
 
   React.useEffect(() => {
