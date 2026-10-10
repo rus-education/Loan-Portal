@@ -51,14 +51,6 @@ function notifyAuthExpired() {
       // Ignored
     }
   });
-
-  if (typeof window !== "undefined") {
-    const currentPath = window.location.pathname;
-    if (currentPath !== "/login") {
-      const redirectUrl = `/login?redirect=${encodeURIComponent(currentPath + window.location.search)}`;
-      window.location.href = redirectUrl;
-    }
-  }
 }
 
 export async function apiFetch(

@@ -17,94 +17,27 @@ import {
   ChevronRight,
   BarChart3,
 } from "lucide-react";
+import { getNavItemsForRole } from "@/config/navigation";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/types";
 
 interface SidebarProps {
-  currentRole?: UserRole;
+  currentRole?: UserRole | null;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
   className?: string;
 }
 
-interface NavItemConfig {
-  title: string;
-  href: string;
-  icon: React.ComponentType<{ className?: string }>;
-  roles: UserRole[];
-  badge?: string;
-}
-
-const NAV_ITEMS: NavItemConfig[] = [
-  {
-    title: "Overview",
-    href: "/",
-    icon: LayoutDashboard,
-    roles: ["SUPERADMIN", "ADMIN", "BRANCH_USER", "VIEWER"],
-  },
-  {
-    title: "Loan Records",
-    href: "/loans",
-    icon: FileText,
-    roles: ["SUPERADMIN", "ADMIN", "BRANCH_USER", "VIEWER"],
-  },
-  {
-    title: "Analytics",
-    href: "/analytics",
-    icon: BarChart3,
-    roles: ["SUPERADMIN", "ADMIN"],
-    badge: "BI",
-  },
-  {
-    title: "New Request",
-    href: "/loans/new",
-    icon: PlusCircle,
-    roles: ["SUPERADMIN", "BRANCH_USER"],
-    badge: "Create",
-  },
-  {
-    title: "Branches (21+)",
-    href: "/branches",
-    icon: Building,
-    roles: ["SUPERADMIN"],
-  },
-  {
-    title: "User Management",
-    href: "/users",
-    icon: Users,
-    roles: ["SUPERADMIN"],
-  },
-  {
-    title: "Audit Logs",
-    href: "/audit-logs",
-    icon: ShieldAlert,
-    roles: ["SUPERADMIN", "ADMIN"],
-  },
-  {
-    title: "System Settings",
-    href: "/settings",
-    icon: Settings,
-    roles: ["SUPERADMIN"],
-  },
-  {
-    title: "System Diagnostics",
-    href: "/diagnostics",
-    icon: Activity,
-    roles: ["SUPERADMIN", "ADMIN", "BRANCH_USER", "VIEWER"],
-  },
-];
-
 export function Sidebar({
-  currentRole = "SUPERADMIN",
+  currentRole,
   isCollapsed = false,
   onToggleCollapse,
   className,
 }: SidebarProps) {
   const pathname = usePathname();
 
-  const filteredItems = NAV_ITEMS.filter((item) =>
-    item.roles.includes(currentRole)
-  );
+  // Strictly derive allowed navigation items from the server-validated session role
+  const filteredItems = getNavItemsForRole(currentRole);
 
   return (
     <aside

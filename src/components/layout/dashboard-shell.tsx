@@ -20,31 +20,15 @@ interface DashboardShellProps {
 
 export function DashboardShell({
   children,
-  initialRole,
   initialUser,
   dbStatus = { connected: true, state: "connected" },
 }: DashboardShellProps) {
-  const { user: authUser } = useAuth();
-  const effectiveUser = initialUser || authUser;
+  const { user: authUser, role: authRole } = useAuth();
+  const effectiveUser = initialUser !== undefined ? initialUser : authUser;
+  const currentRole: UserRole | null = effectiveUser?.role || authRole || null;
 
-  const [role, setRole] = React.useState<UserRole>(
-    effectiveUser?.role || initialRole || "SUPERADMIN"
-  );
   const [isCollapsed, setIsCollapsed] = React.useState(false);
   const [isMobileNavOpen, setIsMobileNavOpen] = React.useState(false);
-
-  React.useEffect(() => {
-    if (effectiveUser?.role) {
-      setRole(effectiveUser.role);
-    }
-  }, [effectiveUser?.role]);
-
-  const currentUser = {
-    name: effectiveUser?.name || "System User",
-    email: effectiveUser?.email || "user@loanportal.internal",
-    role: effectiveUser?.role || role,
-    branchName: effectiveUser?.branchName || undefined,
-  };
 
   return (
     <div className="relative flex min-h-screen bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary">
@@ -56,7 +40,7 @@ export function DashboardShell({
 
       {/* Desktop Sidebar */}
       <Sidebar
-        currentRole={role}
+        currentRole={currentRole}
         isCollapsed={isCollapsed}
         onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
         className="hidden md:flex relative z-20"
@@ -66,15 +50,14 @@ export function DashboardShell({
       <MobileNav
         isOpen={isMobileNavOpen}
         onClose={() => setIsMobileNavOpen(false)}
-        currentRole={role}
+        currentRole={currentRole}
       />
 
       {/* Main Content Area */}
       <div className="flex flex-1 flex-col overflow-hidden relative z-10">
         <Topbar
           onOpenMobileNav={() => setIsMobileNavOpen(true)}
-          currentUser={currentUser}
-          onRoleChange={(newRole) => setRole(newRole)}
+          currentUser={effectiveUser}
           dbStatus={dbStatus}
         />
 

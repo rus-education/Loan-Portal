@@ -4,89 +4,20 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { X, Layers } from "lucide-react";
+import { getNavItemsForRole } from "@/config/navigation";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/types";
-import {
-  LayoutDashboard,
-  FileText,
-  PlusCircle,
-  Building,
-  Users,
-  ShieldAlert,
-  Activity,
-  BarChart3,
-  Settings,
-} from "lucide-react";
 
 interface MobileNavProps {
   isOpen: boolean;
   onClose: () => void;
-  currentRole?: UserRole;
+  currentRole?: UserRole | null;
 }
-
-const NAV_ITEMS = [
-  {
-    title: "Overview",
-    href: "/",
-    icon: LayoutDashboard,
-    roles: ["SUPERADMIN", "ADMIN", "BRANCH_USER", "VIEWER"],
-  },
-  {
-    title: "Loan Records",
-    href: "/loans",
-    icon: FileText,
-    roles: ["SUPERADMIN", "ADMIN", "BRANCH_USER", "VIEWER"],
-  },
-  {
-    title: "Analytics",
-    href: "/analytics",
-    icon: BarChart3,
-    roles: ["SUPERADMIN", "ADMIN"],
-    badge: "BI",
-  },
-  {
-    title: "New Request",
-    href: "/loans/new",
-    icon: PlusCircle,
-    roles: ["SUPERADMIN", "BRANCH_USER"],
-    badge: "Create",
-  },
-  {
-    title: "Branches (21+)",
-    href: "/branches",
-    icon: Building,
-    roles: ["SUPERADMIN"],
-  },
-  {
-    title: "User Management",
-    href: "/users",
-    icon: Users,
-    roles: ["SUPERADMIN"],
-  },
-  {
-    title: "Audit Logs",
-    href: "/audit-logs",
-    icon: ShieldAlert,
-    roles: ["SUPERADMIN", "ADMIN"],
-  },
-  {
-    title: "System Settings",
-    href: "/settings",
-    icon: Settings,
-    roles: ["SUPERADMIN"],
-  },
-  {
-    title: "System Diagnostics",
-    href: "/diagnostics",
-    icon: Activity,
-    roles: ["SUPERADMIN", "ADMIN", "BRANCH_USER", "VIEWER"],
-  },
-];
 
 export function MobileNav({
   isOpen,
   onClose,
-  currentRole = "SUPERADMIN",
+  currentRole,
 }: MobileNavProps) {
   const pathname = usePathname();
 
@@ -96,9 +27,7 @@ export function MobileNav({
 
   if (!isOpen) return null;
 
-  const filteredItems = NAV_ITEMS.filter((item) =>
-    item.roles.includes(currentRole as UserRole)
-  );
+  const filteredItems = getNavItemsForRole(currentRole);
 
   return (
     <div className="fixed inset-0 z-50 md:hidden">

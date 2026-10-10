@@ -1,13 +1,11 @@
 "use client";
 
 import * as React from "react";
-import { ShieldCheck, Building2, LogOut, ChevronDown } from "lucide-react";
+import { ShieldCheck, Building2, LogOut, ChevronDown, User as UserIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/toaster";
 import type { UserRole } from "@/types";
-import { useRouter } from "next/navigation";
-
 import { useAuth } from "@/context/auth-context";
 
 interface UserMenuProps {
@@ -16,23 +14,15 @@ interface UserMenuProps {
     email: string;
     role: UserRole;
     branchName?: string | null;
-  };
-  onRoleChange?: (role: UserRole) => void;
+  } | null;
   onLogout?: () => void;
 }
 
 export function UserMenu({
-  user = {
-    name: "Alex Vance",
-    email: "superadmin@loanportal.internal",
-    role: "SUPERADMIN",
-    branchName: "National Central HQ",
-  },
-  onRoleChange,
+  user,
   onLogout,
 }: UserMenuProps) {
   const { logout } = useAuth();
-  const router = useRouter();
   const [isOpen, setIsOpen] = React.useState(false);
   const menuRef = React.useRef<HTMLDivElement>(null);
 
@@ -63,7 +53,22 @@ export function UserMenu({
     VIEWER: "secondary",
   };
 
-  const roles: UserRole[] = ["SUPERADMIN", "ADMIN", "BRANCH_USER", "VIEWER"];
+  if (!user) {
+    return (
+      <div className="flex items-center gap-2 rounded-xl p-1.5 opacity-60">
+        <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-muted text-muted-foreground animate-pulse">
+          <UserIcon className="h-4 w-4" />
+        </div>
+      </div>
+    );
+  }
+
+  const initials = (user.name || "User")
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
   return (
     <div className="relative" ref={menuRef}>
@@ -74,11 +79,7 @@ export function UserMenu({
         aria-label="User profile menu"
       >
         <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-indigo-600 font-semibold text-xs text-white shadow-xs">
-          {user.name
-            .split(" ")
-            .map((n) => n[0])
-            .join("")
-            .slice(0, 2)}
+          {initials}
         </div>
         <div className="hidden text-left md:block">
           <div className="flex items-center gap-1.5">
@@ -124,30 +125,6 @@ export function UserMenu({
                 </div>
               )}
             </div>
-
-            {onRoleChange && (
-              <div className="py-2 border-b border-border/60">
-                <p className="px-3 text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-1">
-                  Preview As Role (Foundation Mode)
-                </p>
-                {roles.map((r) => (
-                  <button
-                    key={r}
-                    onClick={() => {
-                      onRoleChange(r);
-                      setIsOpen(false);
-                      toast.info(`Switched preview context to ${r}`);
-                    }}
-                    className={`flex w-full items-center justify-between rounded-lg px-3 py-1.5 text-xs transition-colors hover:bg-accent cursor-pointer ${
-                      user.role === r ? "bg-accent/70 font-semibold text-primary" : "text-muted-foreground"
-                    }`}
-                  >
-                    <span>{r}</span>
-                    {user.role === r && <span className="h-1.5 w-1.5 rounded-full bg-primary" />}
-                  </button>
-                ))}
-              </div>
-            )}
 
             <div className="pt-1.5">
               <button

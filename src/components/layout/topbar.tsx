@@ -13,9 +13,8 @@ interface TopbarProps {
     name: string;
     email: string;
     role: UserRole;
-    branchName?: string;
-  };
-  onRoleChange?: (role: UserRole) => void;
+    branchName?: string | null;
+  } | null;
   dbStatus?: {
     connected: boolean;
     state: string;
@@ -25,7 +24,6 @@ interface TopbarProps {
 export function Topbar({
   onOpenMobileNav,
   currentUser,
-  onRoleChange,
   dbStatus = { connected: true, state: "connected" },
 }: TopbarProps) {
   return (
@@ -78,11 +76,8 @@ export function Topbar({
 
         <div className="h-4 w-[1px] bg-border/80" />
 
-        {/* User Profile Menu with Role Switcher */}
-        <UserMenu
-          user={currentUser}
-          onRoleChange={onRoleChange}
-        />
+        {/* User Profile Menu */}
+        <UserMenu user={currentUser} />
       </div>
     </header>
   );

@@ -16,13 +16,26 @@ const PUBLIC_PATHS = [
   "/favicon.ico",
 ];
 
-// Superadmin only frontend paths and user/system management API
-const SUPERADMIN_PATHS = [
+// Superadmin only frontend paths and management APIs
+const SUPERADMIN_ONLY_PATHS = [
   "/branches",
   "/users",
   "/api/users",
   "/settings",
   "/api/settings",
+];
+
+// Admin & Superadmin analytics and audit trails
+const ADMIN_OR_SUPERADMIN_PATHS = [
+  "/analytics",
+  "/api/analytics",
+  "/audit-logs",
+  "/api/audit-logs",
+];
+
+// Loan creation is restricted to SuperAdmin and Branch Officers
+const LOAN_CREATION_PATHS = [
+  "/loans/new",
 ];
 
 export async function middleware(request: NextRequest) {
@@ -81,21 +94,45 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // 7. Role-based route guard for SUPERADMIN areas
   const userRole = String(payload.role || "");
-  const isSuperAdminOnly = SUPERADMIN_PATHS.some((path) => pathname === path || pathname.startsWith(path + "/"));
 
-  if (isSuperAdminOnly && userRole !== "SUPERADMIN") {
+  // 7. Role Guard: SUPERADMIN ONLY
+  const isSuperAdminPath = SUPERADMIN_ONLY_PATHS.some(
+    (path) => pathname === path || pathname.startsWith(path + "/")
+  );
+  if (isSuperAdminPath && userRole !== "SUPERADMIN") {
     if (pathname.startsWith("/api/")) {
       return NextResponse.json(
-        { success: false, error: "Forbidden: Superadmin access required", code: "FORBIDDEN" },
+        { success: false, error: "Forbidden: Superadmin access required", code: "FORBIDDEN_SUPERADMIN_REQUIRED" },
         { status: 403 }
       );
     }
     return NextResponse.redirect(new URL("/", request.url));
   }
 
-  // 8. Forward request with user context in headers
+  // 8. Role Guard: ADMIN OR SUPERADMIN ONLY (Analytics & Audit Logs)
+  const isAdminOrSuperPath = ADMIN_OR_SUPERADMIN_PATHS.some(
+    (path) => pathname === path || pathname.startsWith(path + "/")
+  );
+  if (isAdminOrSuperPath && userRole !== "SUPERADMIN" && userRole !== "ADMIN") {
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json(
+        { success: false, error: "Forbidden: Administrative access required", code: "FORBIDDEN_ADMIN_REQUIRED" },
+        { status: 403 }
+      );
+    }
+    return NextResponse.redirect(new URL("/", request.url));
+  }
+
+  // 9. Role Guard: Loan Creation (/loans/new)
+  const isLoanCreationPath = LOAN_CREATION_PATHS.some(
+    (path) => pathname === path || pathname.startsWith(path + "/")
+  );
+  if (isLoanCreationPath && userRole !== "SUPERADMIN" && userRole !== "BRANCH_USER") {
+    return NextResponse.redirect(new URL("/loans", request.url));
+  }
+
+  // 10. Forward request with trusted user context in headers
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-user-id", String(payload.userId || ""));
   requestHeaders.set("x-user-role", userRole);

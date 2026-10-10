@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import {
   Database,
   Shield,
@@ -12,6 +13,7 @@ import {
   Sparkles,
   Server,
   Lock,
+  ShieldAlert,
 } from "lucide-react";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -125,6 +127,32 @@ export default function SystemSettingsPage() {
       setIsMaintenanceModalOpen(false);
     }
   };
+
+  // Unauthorized access guard for non-SuperAdmins
+  if (!isAuthLoading && currentUser && currentUser.role !== "SUPERADMIN") {
+    return (
+      <DashboardShell initialUser={currentUser}>
+        <div className="flex min-h-[65vh] items-center justify-center p-4">
+          <Card className="glass-card max-w-md w-full text-center border-amber-500/20 p-6 md:p-8 shadow-xl">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-500 mb-4 ring-8 ring-amber-500/5">
+              <ShieldAlert className="h-7 w-7" />
+            </div>
+            <CardTitle className="text-xl font-bold text-foreground">
+              SuperAdmin Access Required
+            </CardTitle>
+            <CardDescription className="mt-2 text-sm text-muted-foreground">
+              Platform security, cluster controls, and maintenance modes are strictly restricted to SuperAdmin accounts.
+            </CardDescription>
+            <div className="mt-6 flex justify-center gap-3">
+              <Link href="/">
+                <Button variant="default">Return to Dashboard</Button>
+              </Link>
+            </div>
+          </Card>
+        </div>
+      </DashboardShell>
+    );
+  }
 
   return (
     <DashboardShell initialUser={currentUser}>
