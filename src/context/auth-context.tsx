@@ -90,7 +90,7 @@ export function AuthProvider({
     return inFlightSessionPromise;
   }, []);
 
-  // Initial load
+  // Initial load on application mount
   React.useEffect(() => {
     if (!initialUser) {
       fetchSession();
@@ -98,13 +98,6 @@ export function AuthProvider({
       setIsLoading(false);
     }
   }, [initialUser, fetchSession]);
-
-  // Re-verify session on route change if user state is not yet hydrated
-  React.useEffect(() => {
-    if (!user && pathname && pathname !== "/login" && !pathname.startsWith("/api/")) {
-      fetchSession();
-    }
-  }, [pathname, user, fetchSession]);
 
   // Subscribe to 401 session expiration from apiFetch
   React.useEffect(() => {
