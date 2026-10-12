@@ -630,14 +630,14 @@ export default function UserManagementPage() {
                                 {u.name.slice(0, 2)}
                               </div>
                               <div>
-                                <p className="font-semibold text-foreground flex items-center gap-1.5">
+                                <div className="font-semibold text-foreground flex items-center gap-1.5">
                                   <span>{u.name}</span>
                                   {isSelf && (
                                     <Badge variant="outline" className="text-[9px] py-0 px-1 font-mono">
                                       You
                                     </Badge>
                                   )}
-                                </p>
+                                </div>
                                 <p className="text-[11px] text-muted-foreground">{u.email}</p>
                                 {u.phone && (
                                   <p className="text-[10px] text-muted-foreground font-mono">
