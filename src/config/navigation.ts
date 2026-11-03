@@ -76,7 +76,7 @@ export const NAV_ITEMS: readonly NavItemConfig[] = [
     title: "Audit & Security Logs",
     href: "/audit-logs",
     icon: ShieldAlert,
-    roles: ["SUPERADMIN", "ADMIN"],
+    roles: ["SUPERADMIN"],
     description: "Immutable chronological compliance trails",
   },
   {
@@ -90,7 +90,7 @@ export const NAV_ITEMS: readonly NavItemConfig[] = [
     title: "System Diagnostics",
     href: "/diagnostics",
     icon: Activity,
-    roles: ALL_ROLES,
+    roles: ["SUPERADMIN"],
     description: "Health checks, database connectivity, and uptime",
   },
 ] as const;
@@ -145,7 +145,11 @@ export function isPathPermittedForRole(pathname: string, role: UserRole | null |
   }
 
   if (normalizedPath.startsWith("/audit-logs")) {
-    return role === "SUPERADMIN" || role === "ADMIN";
+    return role === "SUPERADMIN";
+  }
+
+  if (normalizedPath.startsWith("/diagnostics")) {
+    return role === "SUPERADMIN";
   }
 
   return true;

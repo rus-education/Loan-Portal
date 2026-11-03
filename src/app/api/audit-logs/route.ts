@@ -5,8 +5,8 @@ import { requireRole } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   try {
-    // Only SUPERADMIN and ADMIN can view audit logs
-    const authResult = await requireRole(request, ["SUPERADMIN", "ADMIN"]);
+    // Only SUPERADMIN can view audit logs
+    const authResult = await requireRole(request, ["SUPERADMIN"]);
     if ("status" in authResult) return authResult;
 
     await connectToDatabase();

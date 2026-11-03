@@ -23,14 +23,15 @@ const SUPERADMIN_ONLY_PATHS = [
   "/api/users",
   "/settings",
   "/api/settings",
+  "/audit-logs",
+  "/api/audit-logs",
+  "/diagnostics",
 ];
 
-// Admin & Superadmin analytics and audit trails
+// Admin & Superadmin analytics
 const ADMIN_OR_SUPERADMIN_PATHS = [
   "/analytics",
   "/api/analytics",
-  "/audit-logs",
-  "/api/audit-logs",
 ];
 
 // Loan creation is restricted to SuperAdmin and Branch Officers
@@ -110,7 +111,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
-  // 8. Role Guard: ADMIN OR SUPERADMIN ONLY (Analytics & Audit Logs)
+  // 8. Role Guard: ADMIN OR SUPERADMIN ONLY (Analytics)
   const isAdminOrSuperPath = ADMIN_OR_SUPERADMIN_PATHS.some(
     (path) => pathname === path || pathname.startsWith(path + "/")
   );

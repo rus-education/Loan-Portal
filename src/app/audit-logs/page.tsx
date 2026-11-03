@@ -92,7 +92,7 @@ export default function AuditLogsPage() {
   // Fetch audit logs
   React.useEffect(() => {
     if (isAuthLoading) return;
-    if (!currentUser || (currentUser.role !== "SUPERADMIN" && currentUser.role !== "ADMIN")) {
+    if (!currentUser || currentUser.role !== "SUPERADMIN") {
       setIsLoading(false);
       return;
     }
@@ -137,8 +137,8 @@ export default function AuditLogsPage() {
     return "secondary" as const;
   };
 
-  // Unauthorized access guard for non-Admins/SuperAdmins (BRANCH_USER, VIEWER)
-  if (!isAuthLoading && currentUser && currentUser.role !== "SUPERADMIN" && currentUser.role !== "ADMIN") {
+  // Unauthorized access guard for non-SuperAdmins
+  if (!isAuthLoading && currentUser && currentUser.role !== "SUPERADMIN") {
     return (
       <DashboardShell initialUser={currentUser}>
         <div className="flex min-h-[65vh] items-center justify-center p-4">
@@ -147,10 +147,10 @@ export default function AuditLogsPage() {
               <ShieldAlert className="h-7 w-7" />
             </div>
             <CardTitle className="text-xl font-bold text-foreground">
-              Administrative Access Required
+              SuperAdmin Access Required
             </CardTitle>
             <CardDescription className="mt-2 text-sm text-muted-foreground">
-              Security audit logs and compliance trails are restricted to Administrative and SuperAdmin personnel.
+              Security audit logs and compliance trails are strictly restricted to SuperAdmin accounts.
             </CardDescription>
             <div className="mt-6 flex justify-center gap-3">
               <Link href="/">

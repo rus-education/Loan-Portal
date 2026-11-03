@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { getDatabaseStatus } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
@@ -54,6 +55,14 @@ export default async function DiagnosticsPage() {
     heapTotalMb,
     rssMb,
   } = await getDiagnosticsTelemetry();
+
+  if (!sessionUser) {
+    redirect("/login");
+  }
+
+  if (sessionUser.role !== "SUPERADMIN") {
+    redirect("/");
+  }
 
   return (
     <DashboardShell dbStatus={dbStatus} initialUser={sessionUser}>

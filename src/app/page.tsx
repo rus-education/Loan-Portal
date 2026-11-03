@@ -152,6 +152,7 @@ export default async function HomePage() {
   };
 
   const isAdminOrSuper = sessionUser?.role === "ADMIN" || sessionUser?.role === "SUPERADMIN";
+  const isSuperAdmin = sessionUser?.role === "SUPERADMIN";
 
   // Dashboard Cards Definition
   const statusCards = [
@@ -270,20 +271,20 @@ export default async function HomePage() {
               </Link>
             </Button>
             {isAdminOrSuper && (
-              <>
-                <Button variant="gradient" size="sm" asChild className="gap-2 shadow-xs">
-                  <Link href="/analytics">
-                    <BarChart3 className="h-4 w-4" />
-                    <span>Analytics</span>
-                  </Link>
-                </Button>
-                <Button variant="outline" size="sm" asChild className="gap-2">
-                  <Link href="/audit-logs">
-                    <ShieldAlert className="h-4 w-4" />
-                    <span>Audit Logs</span>
-                  </Link>
-                </Button>
-              </>
+              <Button variant="gradient" size="sm" asChild className="gap-2 shadow-xs">
+                <Link href="/analytics">
+                  <BarChart3 className="h-4 w-4" />
+                  <span>Analytics</span>
+                </Link>
+              </Button>
+            )}
+            {isSuperAdmin && (
+              <Button variant="outline" size="sm" asChild className="gap-2">
+                <Link href="/audit-logs">
+                  <ShieldAlert className="h-4 w-4" />
+                  <span>Audit Logs</span>
+                </Link>
+              </Button>
             )}
           </div>
         </div>
