@@ -216,118 +216,119 @@ export default async function HomePage() {
 
   return (
     <DashboardShell dbStatus={dbStatus} initialUser={sessionUser}>
-      {/* Welcome Banner */}
-      <div className="relative overflow-hidden rounded-3xl border border-border/80 bg-gradient-to-br from-primary/10 via-card/70 to-indigo-500/10 p-6 md:p-8 backdrop-blur-2xl shadow-sm">
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2.5">
-            <div className="flex items-center gap-2">
-              <Badge variant="default" className="gap-1.5 px-3 py-1 text-xs font-semibold shadow-xs">
-                <Sparkles className="h-3.5 w-3.5 text-primary" />
+      <div className="space-y-6 flex flex-col gap-6">
+        {/* Welcome Banner */}
+        <div className="relative overflow-hidden rounded-3xl border border-border/80 bg-gradient-to-br from-primary/10 via-card/70 to-indigo-500/10 p-6 md:p-8 backdrop-blur-2xl shadow-sm">
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="space-y-2.5">
+              <div className="flex items-center gap-2">
+                <Badge variant="default" className="gap-1.5 px-3 py-1 text-xs font-semibold shadow-xs">
+                  <Sparkles className="h-3.5 w-3.5 text-primary" />
+                  {sessionUser?.role === "BRANCH_USER"
+                    ? "Branch Operations Workstation"
+                    : sessionUser?.role === "ADMIN"
+                    ? "Central Operations & Review Hub"
+                    : sessionUser?.role === "VIEWER"
+                    ? "Executive Auditor Console"
+                    : "Executive Governance Hub"}
+                </Badge>
+                {sessionUser?.branchName ? (
+                  <Badge variant="outline" className="text-xs backdrop-blur-sm">
+                    {sessionUser.branchName}
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="text-xs backdrop-blur-sm">
+                    All 22 Branches
+                  </Badge>
+                )}
+              </div>
+              <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
+                {sessionUser ? `Welcome back, ${sessionUser.name}` : "Loan Management Portal"}
+              </h1>
+              <p className="text-xs md:text-sm text-muted-foreground max-w-2xl leading-relaxed">
                 {sessionUser?.role === "BRANCH_USER"
-                  ? "Branch Operations Workstation"
+                  ? `You are managing loan requests originating from ${sessionUser.branchName || "your branch"}. Track submissions and view admin reviews.`
                   : sessionUser?.role === "ADMIN"
-                  ? "Central Operations & Review Hub"
+                  ? "Manage workflow status, evaluate credit underwriting milestones, and update administrative remarks across all regional branches."
                   : sessionUser?.role === "VIEWER"
-                  ? "Executive Auditor Console"
-                  : "Executive Governance Hub"}
-              </Badge>
-              {sessionUser?.branchName ? (
-                <Badge variant="outline" className="text-xs backdrop-blur-sm">
-                  {sessionUser.branchName}
-                </Badge>
-              ) : (
-                <Badge variant="outline" className="text-xs backdrop-blur-sm">
-                  All 22 Branches
-                </Badge>
+                  ? "Read-only executive observation portal. Review branch origination details, loan status progressions, and underwriting remarks across all 22 branches."
+                  : "Centralized loan origination, student profile tracking, and multi-branch processing platform."}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2.5">
+              {sessionUser?.role === "BRANCH_USER" && (
+                <Button size="sm" variant="gradient" asChild className="gap-2">
+                  <Link href="/loans/new">
+                    <PlusCircle className="h-4 w-4" />
+                    <span>New Application</span>
+                  </Link>
+                </Button>
+              )}
+              <Button variant="default" size="sm" asChild className="gap-2 shadow-xs">
+                <Link href="/loans">
+                  <FileText className="h-4 w-4" />
+                  <span>Application Management</span>
+                </Link>
+              </Button>
+              {isAdminOrSuper && (
+                <Button variant="gradient" size="sm" asChild className="gap-2 shadow-xs">
+                  <Link href="/analytics">
+                    <BarChart3 className="h-4 w-4" />
+                    <span>Analytics</span>
+                  </Link>
+                </Button>
+              )}
+              {isSuperAdmin && (
+                <Button variant="outline" size="sm" asChild className="gap-2">
+                  <Link href="/audit-logs">
+                    <ShieldAlert className="h-4 w-4" />
+                    <span>Audit Logs</span>
+                  </Link>
+                </Button>
               )}
             </div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
-              {sessionUser ? `Welcome back, ${sessionUser.name}` : "Loan Management Portal"}
-            </h1>
-            <p className="text-xs md:text-sm text-muted-foreground max-w-2xl leading-relaxed">
-              {sessionUser?.role === "BRANCH_USER"
-                ? `You are managing loan requests originating from ${sessionUser.branchName || "your branch"}. Track submissions and view admin reviews.`
-                : sessionUser?.role === "ADMIN"
-                ? "Manage workflow status, evaluate credit underwriting milestones, and update administrative remarks across all regional branches."
-                : sessionUser?.role === "VIEWER"
-                ? "Read-only executive observation portal. Review branch origination details, loan status progressions, and underwriting remarks across all 22 branches."
-                : "Centralized loan origination, student profile tracking, and multi-branch processing platform."}
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2.5">
-            {sessionUser?.role === "BRANCH_USER" && (
-              <Button size="sm" variant="gradient" asChild className="gap-2">
-                <Link href="/loans/new">
-                  <PlusCircle className="h-4 w-4" />
-                  <span>New Application</span>
-                </Link>
-              </Button>
-            )}
-            <Button variant="default" size="sm" asChild className="gap-2 shadow-xs">
-              <Link href="/loans">
-                <FileText className="h-4 w-4" />
-                <span>Application Management</span>
-              </Link>
-            </Button>
-            {isAdminOrSuper && (
-              <Button variant="gradient" size="sm" asChild className="gap-2 shadow-xs">
-                <Link href="/analytics">
-                  <BarChart3 className="h-4 w-4" />
-                  <span>Analytics</span>
-                </Link>
-              </Button>
-            )}
-            {isSuperAdmin && (
-              <Button variant="outline" size="sm" asChild className="gap-2">
-                <Link href="/audit-logs">
-                  <ShieldAlert className="h-4 w-4" />
-                  <span>Audit Logs</span>
-                </Link>
-              </Button>
-            )}
           </div>
         </div>
-      </div>
 
-      {/* 7 Dashboard KPI Cards with Stagger Animation */}
-      <StaggerContainer className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-7">
-        {statusCards.map((card) => {
-          const IconComponent = card.icon;
-          return (
-            <StaggerItem key={card.title}>
-              <Link
-                href={card.href}
-                className="group block rounded-2xl focus:outline-none"
-              >
-                <Card className="glass-card card-hover h-full p-0">
-                  <CardHeader className="p-3.5 pb-1 flex flex-row items-center justify-between space-y-0">
-                    <span className="text-[11px] font-semibold text-muted-foreground tracking-tight group-hover:text-foreground line-clamp-1">
-                      {card.title}
-                    </span>
-                    <div
-                      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-xl border transition-transform duration-200 group-hover:scale-110 ${card.colorClass}`}
-                    >
-                      <IconComponent className="h-3.5 w-3.5" />
-                    </div>
-                  </CardHeader>
-                  <CardContent className="p-3.5 pt-1">
-                    <div className="text-2xl font-bold text-foreground font-mono tracking-tight">
-                      {card.count}
-                    </div>
-                    <p className="text-[10px] text-muted-foreground mt-1 line-clamp-1">
-                      {card.subtitle}
-                    </p>
-                  </CardContent>
-                </Card>
-              </Link>
-            </StaggerItem>
-          );
-        })}
-      </StaggerContainer>
+        {/* 7 Dashboard KPI Cards with Stagger Animation */}
+        <StaggerContainer className="grid gap-3.5 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-7 items-stretch">
+          {statusCards.map((card) => {
+            const IconComponent = card.icon;
+            return (
+              <StaggerItem key={card.title} className="h-full">
+                <Link
+                  href={card.href}
+                  className="group block rounded-2xl focus:outline-none h-full transition-transform"
+                >
+                  <Card className="glass-card card-hover h-full flex flex-col justify-between p-0 border border-border/80 shadow-xs">
+                    <CardHeader className="p-3.5 pb-1 flex flex-row items-center justify-between space-y-0 gap-1.5">
+                      <span className="text-[11px] font-semibold text-muted-foreground tracking-tight group-hover:text-foreground truncate" title={card.title}>
+                        {card.title}
+                      </span>
+                      <div
+                        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-xl border transition-transform duration-200 group-hover:scale-110 ${card.colorClass}`}
+                      >
+                        <IconComponent className="h-3.5 w-3.5" />
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-3.5 pt-1">
+                      <div className="text-2xl font-bold text-foreground font-mono tracking-tight">
+                        {card.count}
+                      </div>
+                      <p className="text-[10px] text-muted-foreground mt-1 truncate" title={card.subtitle}>
+                        {card.subtitle}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </Link>
+              </StaggerItem>
+            );
+          })}
+        </StaggerContainer>
 
-      {/* Recent Applications Section */}
-      <Card className="glass-card">
+        {/* Recent Applications Section */}
+        <Card className="glass-card shadow-xs border border-border/80">
         <CardHeader className="p-4 border-b border-border/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
             <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2">
@@ -439,6 +440,7 @@ export default async function HomePage() {
           )}
         </CardContent>
       </Card>
+      </div>
     </DashboardShell>
   );
 }
