@@ -104,7 +104,7 @@ export default function NewLoanApplicationPage() {
       course: "MBBS",
       courseDuration: "5.8 Years",
       loanAmount: 2500000,
-      neetScore: null,
+      neetScore: undefined as unknown as number,
       coApplicantRelation: "Father",
       coApplicantDetails: "",
       branchRemarks: "",
@@ -269,6 +269,7 @@ export default function NewLoanApplicationPage() {
             : null,
         coApplicantRelation: data.coApplicantRelation.trim(),
         coApplicantDetails: data.coApplicantDetails.trim(),
+        branchRemarks: data.branchRemarks?.trim() || "",
         sdmId: createdSdmId,
         branchName: branchLabel,
       });
@@ -607,10 +608,10 @@ export default function NewLoanApplicationPage() {
                   </div>
                 </div>
 
-                {/* NEET Score */}
+                {/* NEET Score (Mandatory) */}
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <Label>NEET Score</Label>
+                    <Label required>NEET Score</Label>
                     <Badge variant="outline" className="text-[10px] font-normal py-0">
                       Max: 720 Marks
                     </Badge>
@@ -624,11 +625,11 @@ export default function NewLoanApplicationPage() {
                       placeholder="e.g. 520"
                       className={`pl-10 font-mono text-sm ${errors.neetScore ? "border-destructive focus-visible:ring-destructive/30" : ""}`}
                       {...register("neetScore", {
-                        setValueAs: (v) => (v === "" || v === null || isNaN(Number(v)) ? null : Number(v)),
+                        setValueAs: (v) => (v === "" || v === null || isNaN(Number(v)) ? (undefined as any) : Number(v)),
                         onChange: (e) => {
                           const digits = e.target.value.replace(/\D/g, "").slice(0, 3);
                           e.target.value = digits;
-                          setValue("neetScore", digits === "" ? null : Number(digits), { shouldValidate: true });
+                          setValue("neetScore", digits === "" ? (undefined as any) : Number(digits), { shouldValidate: true });
                         },
                       })}
                       onKeyDown={handleNumericKeyDown}
@@ -639,7 +640,7 @@ export default function NewLoanApplicationPage() {
                     <p className="text-[11px] text-destructive">{errors.neetScore.message}</p>
                   )}
                   <p className="text-[10px] text-muted-foreground">
-                    National Eligibility cum Entrance Test qualification score (0-720)
+                    National Eligibility cum Entrance Test qualification score (0-720) - Required
                   </p>
                 </div>
               </CardContent>
@@ -804,6 +805,7 @@ export default function NewLoanApplicationPage() {
                         : null,
                     coApplicantRelation: currentVals.coApplicantRelation?.trim() || "",
                     coApplicantDetails: currentVals.coApplicantDetails?.trim() || "",
+                    branchRemarks: currentVals.branchRemarks?.trim() || "",
                     branchName: branchLabel,
                   });
                   setIsWhatsAppOpen(true);

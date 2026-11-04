@@ -83,18 +83,20 @@ export const loanFormSchema = z.object({
 
   // Loan Requirement (in INR ₹)
   loanAmount: z
-    .number()
+    .number({
+      message: "Loan requirement is required",
+    })
     .min(10000, "Loan requirement must be at least ₹10,000")
     .max(100000000, "Loan requirement cannot exceed ₹10,00,00,000"),
 
-  // NEET Score (0 to 720)
+  // NEET Score (0 to 720) - Mandatory
   neetScore: z
-    .number()
+    .number({
+      message: "NEET Score is required (0-720)",
+    })
     .int("NEET score must be an integer")
     .min(0, "NEET score cannot be less than 0")
-    .max(720, "NEET score cannot exceed 720 (Max NEET UG marks)")
-    .nullable()
-    .optional(),
+    .max(720, "NEET score cannot exceed 720 (Max NEET UG marks)"),
 
   // Co-Applicant Relation (separate field)
   coApplicantRelation: z

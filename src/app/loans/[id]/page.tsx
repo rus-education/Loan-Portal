@@ -1499,6 +1499,7 @@ export default function LoanDetailPage() {
             neetScore: loan.neetScore,
             coApplicantRelation: loan.coApplicantRelation,
             coApplicantDetails: loan.coApplicantDetails,
+            branchRemarks: loan.branchRemarks,
             sdmId: loan.sdmId,
             branchName: loan.branchId?.name,
           }}
