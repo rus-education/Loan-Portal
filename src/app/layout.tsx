@@ -13,9 +13,9 @@ const fontSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Loan Management Portal | Enterprise Financial Hub",
+  title: "RUS EDUCATION LOAN PORTAL | Enterprise Financial Hub",
   description:
-    "Production-ready Loan Management Portal with multi-branch isolation, server-side RBAC, and streamlined audit workflows.",
+    "Production-ready RUS EDUCATION LOAN PORTAL with multi-branch isolation, server-side RBAC, and streamlined audit workflows.",
   icons: {
     icon: "/favicon.ico",
   },

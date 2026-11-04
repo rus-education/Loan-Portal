@@ -4,7 +4,7 @@ const envSchema = z.object({
   MONGODB_URI: z.string().default(""),
   JWT_SECRET: z.string().min(16, "JWT_SECRET must be at least 16 characters"),
   JWT_EXPIRES_IN: z.string().default("7d"),
-  NEXT_PUBLIC_APP_NAME: z.string().default("Loan Management Portal"),
+  NEXT_PUBLIC_APP_NAME: z.string().default("RUS EDUCATION LOAN PORTAL"),
   NEXT_PUBLIC_APP_URL: z.string().default("http://localhost:3000"),
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
 });
@@ -25,7 +25,7 @@ export const env = envSchema.parse({
   MONGODB_URI: rawMongo || "",
   JWT_SECRET: rawJwtSecret && rawJwtSecret.length >= 16 ? rawJwtSecret : "loan-portal-production-secret-key-32-chars-minimum-entropy-2026",
   JWT_EXPIRES_IN: rawExpires || "7d",
-  NEXT_PUBLIC_APP_NAME: rawAppName || "Loan Management Portal",
+  NEXT_PUBLIC_APP_NAME: rawAppName || "RUS EDUCATION LOAN PORTAL",
   NEXT_PUBLIC_APP_URL: rawAppUrl || "http://localhost:3000",
   NODE_ENV: (rawNodeEnv === "production" || rawNodeEnv === "test") ? rawNodeEnv : "development",
 });

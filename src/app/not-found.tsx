@@ -12,7 +12,7 @@ export default function NotFound() {
         Page or Resource Not Found
       </h2>
       <p className="mt-1.5 max-w-sm text-xs text-muted-foreground">
-        The loan portal route or record identifier you are trying to reach does not exist or may have been moved.
+        The RUS EDUCATION LOAN PORTAL route or record identifier you are trying to reach does not exist or may have been moved.
       </p>
       <div className="mt-6">
         <Button asChild size="sm" className="gap-2">

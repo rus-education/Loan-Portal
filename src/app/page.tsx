@@ -275,7 +275,7 @@ export default async function HomePage() {
                 )}
               </div>
               <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
-                {sessionUser ? `Welcome back, ${sessionUser.name}` : "Loan Management Portal"}
+                {sessionUser ? `Welcome back, ${sessionUser.name}` : "RUS EDUCATION LOAN PORTAL"}
               </h1>
               <p className="text-xs md:text-sm text-muted-foreground max-w-2xl leading-relaxed">
                 {sessionUser?.role === "BRANCH_USER"

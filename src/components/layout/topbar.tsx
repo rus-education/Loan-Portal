@@ -40,7 +40,9 @@ export function Topbar({
 
         {/* Brand / Title for Mobile */}
         <div className="flex items-center gap-2 md:hidden">
-          <span className="text-sm font-bold tracking-tight text-foreground">LOAN PORTAL</span>
+          <span className="text-xs font-bold tracking-tight text-foreground truncate max-w-[200px]">
+            RUS EDUCATION LOAN PORTAL
+          </span>
         </div>
 
         {/* Database & Environment Status Badge (Desktop) */}

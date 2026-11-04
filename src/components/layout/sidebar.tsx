@@ -54,11 +54,11 @@ export function Sidebar({
             <Layers className="h-5 w-5" />
           </div>
           {!isCollapsed && (
-            <div className="flex flex-col">
-              <span className="font-bold text-sm tracking-tight text-foreground leading-none">
-                LOAN PORTAL
+            <div className="flex flex-col min-w-0">
+              <span className="font-bold text-xs tracking-tight text-foreground leading-snug">
+                RUS EDUCATION LOAN PORTAL
               </span>
-              <span className="text-[10px] text-muted-foreground font-medium mt-1 uppercase tracking-wider">
+              <span className="text-[10px] text-muted-foreground font-medium mt-0.5 uppercase tracking-wider">
                 Enterprise v1.0
               </span>
             </div>

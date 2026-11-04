@@ -125,7 +125,7 @@ export function generateWhatsAppMessage(data: LoanWhatsAppPayload): string {
   lines.push(``);
   lines.push(`----------------------------------------`);
   lines.push(
-    `Note: This customer application has been registered in the Loan Management Portal and forwarded to credit underwriting for processing.`
+    `Note: This customer application has been registered in the RUS EDUCATION LOAN PORTAL and forwarded to credit underwriting for processing.`
   );
   lines.push(
     `Please keep your original KYC documents, Aadhaar, and admission offer letter ready for bank verification as per the attached checklist.`

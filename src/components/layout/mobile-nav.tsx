@@ -45,8 +45,10 @@ export function MobileNav({
               <Layers className="h-4 w-4" />
             </div>
             <div>
-              <span className="text-sm font-bold tracking-tight text-foreground">LOAN PORTAL</span>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Enterprise</p>
+              <span className="text-xs font-bold tracking-tight text-foreground block leading-tight">
+                RUS EDUCATION LOAN PORTAL
+              </span>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-0.5">Enterprise</p>
             </div>
           </div>
           <button

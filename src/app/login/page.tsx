@@ -134,7 +134,7 @@ export default function LoginPage() {
             <Layers className="h-6 w-6" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            Loan Management Portal
+            RUS EDUCATION LOAN PORTAL
           </h1>
           <p className="text-xs text-muted-foreground">
             Sign in to access secure multi-branch loan processing operations
