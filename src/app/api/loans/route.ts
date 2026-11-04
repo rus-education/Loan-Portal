@@ -296,14 +296,14 @@ export async function POST(request: NextRequest) {
         data.parentGuardianIncomeSource ||
         (data.coApplicantDetails ? `Co-Applicant (${data.coApplicantRelation || "Parent"})` : "Family Income"),
       currentStage: data.currentStage || "Initial Inquiry",
-      status: "Pending", // Always begins in Pending
+      status: "Logged in", // Always begins in Logged in
       statusHistory: [
         {
           fromStatus: "None",
-          toStatus: "Pending",
+          toStatus: "Logged in",
           changedBy: user.id,
           changedByName: user.name,
-          remarks: "Application registered at branch",
+          remarks: "Application logged in at branch",
           timestamp: new Date(),
         },
       ],

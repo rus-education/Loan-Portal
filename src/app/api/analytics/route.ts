@@ -20,11 +20,18 @@ const MONTH_NAMES = [
 ];
 
 const STATUS_COLORS: Record<string, string> = {
+  "Logged in": "#f59e0b",
+  "In Process": "#0ea5e9",
+  Sanctioned: "#10b981",
+  Disbursed: "#059669",
+  Deffered: "#8b5cf6",
+  "No response": "#f97316",
+  Rejected: "#f43f5e",
+  Closed: "#64748b",
+  // Legacy status support
   Pending: "#f59e0b",
   "Under Review": "#0ea5e9",
-  "In Progress": "#6366f1",
   Approved: "#10b981",
-  Rejected: "#f43f5e",
   Completed: "#8b5cf6",
   "On Hold": "#64748b",
 };

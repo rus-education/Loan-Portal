@@ -1,11 +1,18 @@
 export type UserRole = "BRANCH_USER" | "ADMIN" | "VIEWER" | "SUPERADMIN";
 
 export type WorkflowStatus =
+  | "Logged in"
+  | "In Process"
+  | "Sanctioned"
+  | "Disbursed"
+  | "Deffered"
+  | "No response"
+  | "Rejected"
+  | "Closed"
+  // Legacy aliases for backward compatibility
   | "Pending"
   | "Under Review"
-  | "In Progress"
   | "Approved"
-  | "Rejected"
   | "Completed"
   | "On Hold";
 

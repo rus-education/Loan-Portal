@@ -354,17 +354,27 @@ export default function LoansListPage() {
 
   const getStatusBadgeVariant = (st: WorkflowStatus) => {
     switch (st) {
+      case "Sanctioned":
       case "Approved":
         return "success" as const;
+      case "Disbursed":
+        return "teal" as const;
+      case "Logged in":
       case "Pending":
         return "warning" as const;
-      case "In Progress":
+      case "In Process":
       case "Under Review":
         return "info" as const;
+      case "Deffered":
+      case "On Hold":
+        return "purple" as const;
+      case "No response":
+        return "orange" as const;
       case "Rejected":
         return "destructive" as const;
+      case "Closed":
       case "Completed":
-        return "purple" as const;
+        return "secondary" as const;
       default:
         return "secondary" as const;
     }
@@ -607,12 +617,14 @@ export default function LoansListPage() {
                   className="h-8 text-xs"
                 >
                   <option value="">All Statuses</option>
-                  <option value="Pending">Pending</option>
-                  <option value="Under Review">Under Review</option>
-                  <option value="In Progress">In Progress</option>
-                  <option value="Approved">Approved</option>
+                  <option value="Logged in">Logged in</option>
+                  <option value="In Process">In Process</option>
+                  <option value="Sanctioned">Sanctioned</option>
+                  <option value="Disbursed">Disbursed</option>
+                  <option value="Deffered">Deffered</option>
+                  <option value="No response">No response</option>
                   <option value="Rejected">Rejected</option>
-                  <option value="Completed">Completed</option>
+                  <option value="Closed">Closed</option>
                 </Select>
               </div>
 

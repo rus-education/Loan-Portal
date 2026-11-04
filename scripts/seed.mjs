@@ -579,9 +579,22 @@ async function seed() {
     ];
 
     const now = new Date();
+    let seedIdx = 0;
     for (const loan of SAMPLE_LOANS) {
+      seedIdx++;
       const branchId = branchMap.get(loan.branchCode) || delhiBranchId;
       const createdDate = new Date(now.getFullYear(), now.getMonth() - loan.monthsAgo, 10 + Math.floor(Math.random() * 15));
+
+      const normalizedStatus =
+        loan.status === "Pending"
+          ? "Logged in"
+          : loan.status === "Under Review" || loan.status === "In Progress"
+          ? "In Process"
+          : loan.status === "Approved"
+          ? "Sanctioned"
+          : loan.status === "Completed"
+          ? (seedIdx % 2 === 0 ? "Disbursed" : "Closed")
+          : loan.status;
 
       await loansCol.insertOne({
         sdmId: loan.sdmId,
@@ -595,21 +608,21 @@ async function seed() {
         intakeYear: loan.intakeYear,
         parentGuardianIncomeSource: loan.parentGuardianIncomeSource,
         currentStage: loan.currentStage,
-        status: loan.status,
+        status: normalizedStatus,
         statusHistory: [
           {
             fromStatus: "Draft",
-            toStatus: "Pending",
+            toStatus: "Logged in",
             changedBy: adminId,
             changedByName: "Branch Originator",
-            remarks: "Application submitted with initial KYC and admission letter",
+            remarks: "Application logged in with initial KYC and admission letter",
             timestamp: createdDate,
           },
-          ...(loan.status !== "Pending"
+          ...(normalizedStatus !== "Logged in"
             ? [
                 {
-                  fromStatus: "Pending",
-                  toStatus: loan.status,
+                  fromStatus: "Logged in",
+                  toStatus: normalizedStatus,
                   changedBy: adminId,
                   changedByName: "Underwriting Admin",
                   remarks: loan.adminRemarks || "Status progressed according to underwriting milestones",

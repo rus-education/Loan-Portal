@@ -105,22 +105,23 @@ const WORKFLOW_STAGES = [
 ];
 
 const WORKFLOW_STATUSES: WorkflowStatus[] = [
-  "Pending",
-  "Under Review",
-  "In Progress",
-  "Approved",
+  "Logged in",
+  "In Process",
+  "Sanctioned",
+  "Disbursed",
+  "Deffered",
+  "No response",
   "Rejected",
-  "Completed",
-  "On Hold",
+  "Closed",
 ];
 
 // Linear pipeline sequence for the visual stepper bar
 const PIPELINE_STEPS: WorkflowStatus[] = [
-  "Pending",
-  "Under Review",
-  "In Progress",
-  "Approved",
-  "Completed",
+  "Logged in",
+  "In Process",
+  "Sanctioned",
+  "Disbursed",
+  "Closed",
 ];
 
 export default function LoanDetailPage() {
@@ -133,7 +134,7 @@ export default function LoanDetailPage() {
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
 
   // Admin managed state
-  const [adminStatus, setAdminStatus] = React.useState<WorkflowStatus>("Pending");
+  const [adminStatus, setAdminStatus] = React.useState<WorkflowStatus>("Logged in");
   const [adminStage, setAdminStage] = React.useState<string>("Initial Inquiry");
   const router = useRouter();
   const [adminRemarks, setAdminRemarks] = React.useState<string>("");
@@ -382,17 +383,27 @@ export default function LoanDetailPage() {
 
   const getStatusBadgeVariant = (st: WorkflowStatus | string) => {
     switch (st) {
+      case "Sanctioned":
       case "Approved":
         return "success" as const;
+      case "Disbursed":
+        return "teal" as const;
+      case "Logged in":
       case "Pending":
         return "warning" as const;
-      case "In Progress":
+      case "In Process":
       case "Under Review":
         return "info" as const;
+      case "Deffered":
+      case "On Hold":
+        return "purple" as const;
+      case "No response":
+        return "orange" as const;
       case "Rejected":
         return "destructive" as const;
+      case "Closed":
       case "Completed":
-        return "purple" as const;
+        return "secondary" as const;
       default:
         return "secondary" as const;
     }

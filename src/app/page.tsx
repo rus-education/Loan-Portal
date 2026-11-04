@@ -14,11 +14,13 @@ import type { WorkflowStatus } from "@/types";
 import {
   FileText,
   Clock,
-  Search,
   Layers,
   CheckCircle2,
   XCircle,
-  Award,
+  IndianRupee,
+  Clock3,
+  PhoneOff,
+  Archive,
   PlusCircle,
   ArrowRight,
   Eye,
@@ -35,12 +37,14 @@ export default async function HomePage() {
 
   const metrics = {
     total: 0,
-    pending: 0,
-    underReview: 0,
-    inProgress: 0,
-    approved: 0,
+    loggedIn: 0,
+    inProcess: 0,
+    sanctioned: 0,
+    disbursed: 0,
+    deffered: 0,
+    noResponse: 0,
     rejected: 0,
-    completed: 0,
+    closed: 0,
   };
 
   interface SafeRecentLoan {
@@ -93,12 +97,14 @@ export default async function HomePage() {
         for (const s of statusStats) {
           const count = Number(s.count) || 0;
           total += count;
-          if (s._id === "Pending") metrics.pending = count;
-          else if (s._id === "Under Review") metrics.underReview = count;
-          else if (s._id === "In Progress") metrics.inProgress = count;
-          else if (s._id === "Approved") metrics.approved = count;
-          else if (s._id === "Rejected") metrics.rejected = count;
-          else if (s._id === "Completed") metrics.completed = count;
+          if (s._id === "Logged in" || s._id === "Pending") metrics.loggedIn += count;
+          else if (s._id === "In Process" || s._id === "Under Review") metrics.inProcess += count;
+          else if (s._id === "Sanctioned" || s._id === "Approved") metrics.sanctioned += count;
+          else if (s._id === "Disbursed") metrics.disbursed += count;
+          else if (s._id === "Deffered" || s._id === "On Hold") metrics.deffered += count;
+          else if (s._id === "No response") metrics.noResponse += count;
+          else if (s._id === "Rejected") metrics.rejected += count;
+          else if (s._id === "Closed" || s._id === "Completed") metrics.closed += count;
         }
       }
       metrics.total = total;
@@ -135,17 +141,27 @@ export default async function HomePage() {
 
   const getStatusBadgeVariant = (st: WorkflowStatus) => {
     switch (st) {
+      case "Sanctioned":
       case "Approved":
         return "success" as const;
+      case "Disbursed":
+        return "teal" as const;
+      case "Logged in":
       case "Pending":
         return "warning" as const;
-      case "In Progress":
+      case "In Process":
       case "Under Review":
         return "info" as const;
+      case "Deffered":
+      case "On Hold":
+        return "purple" as const;
+      case "No response":
+        return "orange" as const;
       case "Rejected":
         return "destructive" as const;
+      case "Closed":
       case "Completed":
-        return "purple" as const;
+        return "secondary" as const;
       default:
         return "secondary" as const;
     }
@@ -159,42 +175,58 @@ export default async function HomePage() {
     {
       title: "Total Applications",
       count: metrics.total,
-      subtitle: "Registered applications",
+      subtitle: "All records",
       icon: FileText,
       href: "/loans",
       colorClass: "bg-primary/10 text-primary border-primary/20",
     },
     {
-      title: "Pending",
-      count: metrics.pending,
-      subtitle: "Awaiting review",
+      title: "Logged in",
+      count: metrics.loggedIn,
+      subtitle: "Newly registered",
       icon: Clock,
-      href: "/loans?status=Pending",
+      href: "/loans?status=Logged%20in",
       colorClass: "bg-amber-500/10 text-amber-500 border-amber-500/20",
     },
     {
-      title: "Under Review",
-      count: metrics.underReview,
-      subtitle: "In admin evaluation",
-      icon: Search,
-      href: "/loans?status=Under%20Review",
+      title: "In Process",
+      count: metrics.inProcess,
+      subtitle: "Under processing",
+      icon: Layers,
+      href: "/loans?status=In%20Process",
       colorClass: "bg-sky-500/10 text-sky-500 border-sky-500/20",
     },
     {
-      title: "In Progress",
-      count: metrics.inProgress,
-      subtitle: "Under processing",
-      icon: Layers,
-      href: "/loans?status=In%20Progress",
-      colorClass: "bg-indigo-500/10 text-indigo-500 border-indigo-500/20",
+      title: "Sanctioned",
+      count: metrics.sanctioned,
+      subtitle: "Sanction issued",
+      icon: CheckCircle2,
+      href: "/loans?status=Sanctioned",
+      colorClass: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
     },
     {
-      title: "Approved",
-      count: metrics.approved,
-      subtitle: "Sanction authorized",
-      icon: CheckCircle2,
-      href: "/loans?status=Approved",
-      colorClass: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+      title: "Disbursed",
+      count: metrics.disbursed,
+      subtitle: "Loan disbursed",
+      icon: IndianRupee,
+      href: "/loans?status=Disbursed",
+      colorClass: "bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/20",
+    },
+    {
+      title: "Deffered",
+      count: metrics.deffered,
+      subtitle: "Put on hold",
+      icon: Clock3,
+      href: "/loans?status=Deffered",
+      colorClass: "bg-purple-500/10 text-purple-500 border-purple-500/20",
+    },
+    {
+      title: "No response",
+      count: metrics.noResponse,
+      subtitle: "No parent response",
+      icon: PhoneOff,
+      href: "/loans?status=No%20response",
+      colorClass: "bg-orange-500/10 text-orange-500 border-orange-500/20",
     },
     {
       title: "Rejected",
@@ -205,12 +237,12 @@ export default async function HomePage() {
       colorClass: "bg-rose-500/10 text-rose-500 border-rose-500/20",
     },
     {
-      title: "Completed",
-      count: metrics.completed,
-      subtitle: "Disbursed & closed",
-      icon: Award,
-      href: "/loans?status=Completed",
-      colorClass: "bg-purple-500/10 text-purple-500 border-purple-500/20",
+      title: "Closed",
+      count: metrics.closed,
+      subtitle: "Completed & closed",
+      icon: Archive,
+      href: "/loans?status=Closed",
+      colorClass: "bg-slate-500/10 text-slate-500 border-slate-500/20",
     },
   ];
 
@@ -291,8 +323,8 @@ export default async function HomePage() {
           </div>
         </div>
 
-        {/* 7 Dashboard KPI Cards with Stagger Animation */}
-        <StaggerContainer className="grid gap-3.5 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-7 items-stretch">
+        {/* 9 Dashboard KPI Cards with Stagger Animation */}
+        <StaggerContainer className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-5 xl:grid-cols-9 items-stretch">
           {statusCards.map((card) => {
             const IconComponent = card.icon;
             return (
