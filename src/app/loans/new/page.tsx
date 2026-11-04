@@ -21,6 +21,7 @@ import {
   Loader2,
   FilePlus2,
   Sparkles,
+  MessageCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
@@ -32,6 +33,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/toaster";
+import { WhatsAppShareDialog } from "@/components/loans/whatsapp-share-dialog";
+import type { LoanWhatsAppPayload } from "@/lib/whatsapp";
 import {
   loanFormSchema,
   type LoanFormData,
@@ -74,11 +77,15 @@ export default function NewLoanApplicationPage() {
   const [branches, setBranches] = React.useState<BranchOption[]>([]);
   const [submitError, setSubmitError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [whatsAppModalData, setWhatsAppModalData] = React.useState<LoanWhatsAppPayload | null>(null);
+  const [isWhatsAppOpen, setIsWhatsAppOpen] = React.useState(false);
+  const [createdLoanId, setCreatedLoanId] = React.useState<string | null>(null);
 
   const {
     register,
     handleSubmit,
     setValue,
+    getValues,
     control,
     formState: { errors },
   } = useForm<LoanFormData>({
@@ -234,9 +241,39 @@ export default function NewLoanApplicationPage() {
         return;
       }
 
+      const createdId = resData.data?._id;
+      const createdSdmId = resData.data?.sdmId || "";
+      const branchLabel =
+        resData.data?.branchId?.name ||
+        branches.find((b) => b._id === data.branchId)?.name ||
+        currentUser?.branchName ||
+        "Branch Office";
+
       toast.success("Student loan application submitted successfully!");
-      router.push(`/loans/${resData.data._id}`);
-      router.refresh();
+      setCreatedLoanId(createdId);
+      setWhatsAppModalData({
+        studentName: data.studentName.trim(),
+        contactNumber: data.contactNumber.trim(),
+        email: data.email.trim(),
+        state: data.state.trim(),
+        pincode: data.pincode.trim(),
+        residentialAddress: data.residentialAddress.trim(),
+        country: data.country.trim(),
+        universityCollege: data.universityCollege.trim(),
+        course: data.course.trim(),
+        courseDuration: data.courseDuration.trim(),
+        loanAmount: Number(data.loanAmount),
+        neetScore:
+          data.neetScore !== undefined && data.neetScore !== null && !isNaN(Number(data.neetScore))
+            ? Number(data.neetScore)
+            : null,
+        coApplicantRelation: data.coApplicantRelation.trim(),
+        coApplicantDetails: data.coApplicantDetails.trim(),
+        sdmId: createdSdmId,
+        branchName: branchLabel,
+      });
+      setIsWhatsAppOpen(true);
+      setIsSubmitting(false);
     } catch {
       setSubmitError("Network error occurred while submitting. Please try again.");
       setIsSubmitting(false);
@@ -728,32 +765,100 @@ export default function NewLoanApplicationPage() {
           </div>
 
           {/* Action Footer */}
-          <div className="flex items-center justify-between rounded-2xl border border-border/80 bg-card/60 p-4 backdrop-blur-xl shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/80 bg-card/60 p-4 backdrop-blur-xl shadow-xs">
             <Button variant="outline" size="sm" asChild disabled={isSubmitting}>
               <Link href="/loans">Cancel</Link>
             </Button>
 
-            <Button
-              type="submit"
-              size="default"
-              disabled={isSubmitting}
-              className="gap-2 shadow-sm font-semibold"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Submitting Customer Details...</span>
-                </>
-              ) : (
-                <>
-                  <FilePlus2 className="h-4 w-4" />
-                  <span>Submit Loan Application</span>
-                </>
-              )}
-            </Button>
+            <div className="flex flex-wrap items-center gap-2.5">
+              <Button
+                type="button"
+                variant="outline"
+                size="default"
+                disabled={isSubmitting}
+                onClick={() => {
+                  const currentVals = getValues();
+                  const branchLabel =
+                    branches.find((b) => b._id === currentVals.branchId)?.name ||
+                    currentUser?.branchName ||
+                    "Branch Office";
+
+                  setCreatedLoanId(null);
+                  setWhatsAppModalData({
+                    studentName: currentVals.studentName?.trim() || "Prospective Student",
+                    contactNumber: currentVals.contactNumber?.trim() || "",
+                    email: currentVals.email?.trim() || "",
+                    state: currentVals.state?.trim() || "",
+                    pincode: currentVals.pincode?.trim() || "",
+                    residentialAddress: currentVals.residentialAddress?.trim() || "",
+                    country: currentVals.country?.trim() || "",
+                    universityCollege: currentVals.universityCollege?.trim() || "",
+                    course: currentVals.course?.trim() || "",
+                    courseDuration: currentVals.courseDuration?.trim() || "",
+                    loanAmount: Number(currentVals.loanAmount) || 0,
+                    neetScore:
+                      currentVals.neetScore !== undefined &&
+                      currentVals.neetScore !== null &&
+                      !isNaN(Number(currentVals.neetScore))
+                        ? Number(currentVals.neetScore)
+                        : null,
+                    coApplicantRelation: currentVals.coApplicantRelation?.trim() || "",
+                    coApplicantDetails: currentVals.coApplicantDetails?.trim() || "",
+                    branchName: branchLabel,
+                  });
+                  setIsWhatsAppOpen(true);
+                }}
+                className="gap-2 text-xs font-semibold text-[#25D366] hover:text-[#25D366] hover:bg-[#25D366]/10 border-[#25D366]/30 transition-colors shadow-xs"
+              >
+                <MessageCircle className="h-4 w-4" />
+                <span>Preview WhatsApp Template</span>
+              </Button>
+
+              <Button
+                type="submit"
+                size="default"
+                disabled={isSubmitting}
+                className="gap-2 shadow-sm font-semibold"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Submitting Customer Details...</span>
+                  </>
+                ) : (
+                  <>
+                    <FilePlus2 className="h-4 w-4" />
+                    <span>Submit Loan Application</span>
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </form>
       </div>
+
+      {/* WhatsApp Template Sharing Dialog */}
+      <WhatsAppShareDialog
+        isOpen={isWhatsAppOpen}
+        onClose={() => {
+          setIsWhatsAppOpen(false);
+          if (createdLoanId) {
+            router.push(`/loans/${createdLoanId}`);
+            router.refresh();
+          }
+        }}
+        data={whatsAppModalData}
+        onContinue={
+          createdLoanId
+            ? () => {
+                setIsWhatsAppOpen(false);
+                router.push(`/loans/${createdLoanId}`);
+                router.refresh();
+              }
+            : undefined
+        }
+        continueLabel="Proceed to Application Dossier"
+      />
     </DashboardShell>
   );
 }

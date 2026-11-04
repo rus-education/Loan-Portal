@@ -27,6 +27,7 @@ import {
   Trash2,
   Edit2,
   X,
+  MessageCircle,
 } from "lucide-react";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -38,6 +39,7 @@ import { Select } from "@/components/ui/select";
 import { LoadingState } from "@/components/feedback/loading-state";
 import { ErrorState } from "@/components/feedback/error-state";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { WhatsAppShareDialog } from "@/components/loans/whatsapp-share-dialog";
 import { toast } from "@/components/ui/toaster";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatCurrency, formatDate, formatDateTime } from "@/lib/utils";
@@ -150,6 +152,7 @@ export default function LoanDetailPage() {
 
   // SuperAdmin Data Correction Modal state
   const [isCorrectionOpen, setIsCorrectionOpen] = React.useState(false);
+  const [isWhatsAppOpen, setIsWhatsAppOpen] = React.useState(false);
   const [corrStudentName, setCorrStudentName] = React.useState("");
   const [corrContactNumber, setCorrContactNumber] = React.useState("");
   const [corrCourse, setCorrCourse] = React.useState("");
@@ -475,6 +478,17 @@ export default function LoanDetailPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsWhatsAppOpen(true)}
+              className="gap-1.5 text-xs font-semibold text-[#25D366] hover:text-[#25D366] hover:bg-[#25D366]/10 border-[#25D366]/30 h-9 transition-colors shadow-xs"
+              title="Share intake template on WhatsApp"
+            >
+              <MessageCircle className="h-4 w-4" />
+              <span>Share on WhatsApp</span>
+            </Button>
+
             <Button variant="outline" size="sm" asChild className="h-9">
               <Link href="/loans">Back to Directory</Link>
             </Button>
@@ -1462,6 +1476,32 @@ export default function LoanDetailPage() {
           variant="destructive"
           isLoading={isDeleting}
           onConfirm={handleDeleteLoan}
+        />
+      )}
+
+      {/* WhatsApp Intake Summary Share Dialog */}
+      {loan && (
+        <WhatsAppShareDialog
+          isOpen={isWhatsAppOpen}
+          onClose={() => setIsWhatsAppOpen(false)}
+          data={{
+            studentName: loan.studentName,
+            contactNumber: loan.contactNumber,
+            email: loan.email,
+            state: loan.state,
+            pincode: loan.pincode,
+            residentialAddress: loan.residentialAddress,
+            country: loan.country,
+            universityCollege: loan.universityCollege,
+            course: loan.course,
+            courseDuration: loan.courseDuration,
+            loanAmount: loan.loanAmount,
+            neetScore: loan.neetScore,
+            coApplicantRelation: loan.coApplicantRelation,
+            coApplicantDetails: loan.coApplicantDetails,
+            sdmId: loan.sdmId,
+            branchName: loan.branchId?.name,
+          }}
         />
       )}
     </DashboardShell>
