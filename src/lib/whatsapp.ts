@@ -16,6 +16,7 @@ export interface LoanWhatsAppPayload {
   coApplicantRelation?: string;
   coApplicantDetails?: string;
   branchRemarks?: string;
+  checklistUrl?: string;
   sdmId?: string;
   branchName?: string;
 }
@@ -105,13 +106,23 @@ export function generateWhatsAppMessage(data: LoanWhatsAppPayload): string {
     lines.push(`- Remarks: ${data.branchRemarks.trim()}`);
   }
 
+  // Mandatory Document Checklist
+  const sectionNumber = data.branchRemarks && data.branchRemarks.trim() ? "5" : "4";
+  lines.push(``);
+  lines.push(`*${sectionNumber}. MANDATORY DOCUMENTS CHECKLIST (PDF)*`);
+  lines.push(`- Attached Document: Checklist for Education Loan.pdf`);
+  if (data.checklistUrl) {
+    lines.push(`- Download Checklist Link: ${data.checklistUrl}`);
+  }
+  lines.push(`- Instructions: Please review the attached Checklist for Education Loan and arrange all specified academic, KYC, and financial documents.`);
+
   lines.push(``);
   lines.push(`----------------------------------------`);
   lines.push(
     `Note: This customer application has been registered in the Loan Management Portal and forwarded to credit underwriting for processing.`
   );
   lines.push(
-    `Please keep your original KYC documents, Aadhaar, and admission offer letter ready for bank verification.`
+    `Please keep your original KYC documents, Aadhaar, and admission offer letter ready for bank verification as per the attached checklist.`
   );
 
   return lines.join("\n");

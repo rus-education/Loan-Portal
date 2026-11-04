@@ -10,6 +10,8 @@ import {
   Phone,
   User,
   Share2,
+  FileText,
+  Download,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -40,6 +42,13 @@ export function WhatsAppShareDialog({
 }: WhatsAppShareDialogProps) {
   const [recipientNumber, setRecipientNumber] = React.useState<string>("");
   const [isCopied, setIsCopied] = React.useState(false);
+  const [checklistUrl, setChecklistUrl] = React.useState<string>("");
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      setChecklistUrl(`${window.location.origin}/api/documents/checklist`);
+    }
+  }, []);
 
   // Sync recipient number when data changes
   React.useEffect(() => {
@@ -48,9 +57,27 @@ export function WhatsAppShareDialog({
     }
   }, [data]);
 
-  if (!data) return null;
+  const messagePayload = React.useMemo(() => {
+    if (!data) return null;
+    return {
+      ...data,
+      checklistUrl: data.checklistUrl || checklistUrl,
+    };
+  }, [data, checklistUrl]);
 
-  const generatedMessage = generateWhatsAppMessage(data);
+  if (!messagePayload || !data) return null;
+
+  const generatedMessage = generateWhatsAppMessage(messagePayload);
+
+  const handleDownloadPdf = () => {
+    const link = document.createElement("a");
+    link.href = "/api/documents/checklist";
+    link.download = "Checklist for Education Loan.pdf";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success("Downloaded Checklist for Education Loan.pdf");
+  };
 
   const handleCopy = async () => {
     try {
@@ -67,11 +94,42 @@ export function WhatsAppShareDialog({
     const targetPhone = recipientNumber.trim() || data.contactNumber;
     const shareUrl = getWhatsAppShareUrl(targetPhone, generatedMessage);
     window.open(shareUrl, "_blank", "noopener,noreferrer");
+
+    // Also download the PDF locally so admin can immediately drag-and-drop or attach it on WhatsApp Web
+    handleDownloadPdf();
+    toast.success("Opening WhatsApp with customer details and checklist download link!");
   };
 
   const handleNativeShare = async () => {
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
+        let pdfFile: File | null = null;
+        try {
+          const resp = await fetch("/api/documents/checklist");
+          if (resp.ok) {
+            const blob = await resp.blob();
+            pdfFile = new File([blob], "Checklist for Education Loan.pdf", {
+              type: "application/pdf",
+            });
+          }
+        } catch (fetchErr) {
+          console.warn("Could not load PDF blob for native file share:", fetchErr);
+        }
+
+        if (
+          pdfFile &&
+          typeof navigator.canShare === "function" &&
+          navigator.canShare({ files: [pdfFile] })
+        ) {
+          await navigator.share({
+            title: `Education Loan Checklist & Dossier - ${data.studentName}`,
+            text: generatedMessage,
+            files: [pdfFile],
+          });
+          toast.success("Checklist PDF & intake template shared!");
+          return;
+        }
+
         await navigator.share({
           title: `Student Loan Application - ${data.studentName}`,
           text: generatedMessage,
@@ -171,6 +229,53 @@ export function WhatsAppShareDialog({
                       className="h-8 w-32 pl-8 text-xs font-mono font-semibold"
                     />
                   </div>
+                </div>
+              </div>
+
+              {/* Attached Checklist Document */}
+              <div className="rounded-2xl border border-sky-500/25 bg-sky-500/5 p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 shadow-xs">
+                    <FileText className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-foreground">
+                        Checklist for Education Loan.pdf
+                      </span>
+                      <Badge variant="outline" className="text-[10px] text-sky-600 dark:text-sky-400 border-sky-500/30 py-0 font-medium">
+                        PDF Included
+                      </Badge>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                      Required documents checklist sent with download link & instant attachment
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.open("/api/documents/checklist", "_blank")}
+                    className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+                    title="View Checklist PDF in new tab"
+                  >
+                    <ExternalLink className="h-3 w-3" />
+                    <span>View PDF</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleDownloadPdf}
+                    className="h-8 gap-1.5 text-xs font-semibold"
+                    title="Download Checklist PDF"
+                  >
+                    <Download className="h-3 w-3" />
+                    <span>Download</span>
+                  </Button>
                 </div>
               </div>
 
