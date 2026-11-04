@@ -35,6 +35,7 @@ import { toast } from "@/components/ui/toaster";
 import {
   loanFormSchema,
   type LoanFormData,
+  INDIAN_STATES,
   CO_APPLICANT_RELATIONS,
   POPULAR_COUNTRIES,
   POPULAR_COURSES,
@@ -86,8 +87,9 @@ export default function NewLoanApplicationPage() {
       studentName: "",
       contactNumber: "",
       email: "",
-      residentialAddress: "",
+      state: "",
       pincode: "",
+      residentialAddress: "",
       country: "Russia",
       universityCollege: "",
       course: "MBBS",
@@ -142,8 +144,9 @@ export default function NewLoanApplicationPage() {
         studentName: data.studentName.trim(),
         contactNumber: data.contactNumber.trim(),
         email: data.email.trim().toLowerCase(),
-        residentialAddress: data.residentialAddress.trim(),
+        state: data.state.trim(),
         pincode: data.pincode.trim(),
+        residentialAddress: data.residentialAddress.trim(),
         country: data.country.trim(),
         universityCollege: data.universityCollege.trim(),
         course: data.course.trim(),
@@ -294,6 +297,43 @@ export default function NewLoanApplicationPage() {
                   </div>
                 </div>
 
+                {/* State & 6 Digit Pincode (Placed above Residential Address) */}
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label required>State</Label>
+                    <Select {...register("state")} disabled={isSubmitting}>
+                      <option value="">Select State / UT</option>
+                      {INDIAN_STATES.map((s) => (
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
+                      ))}
+                    </Select>
+                    {errors.state && (
+                      <p className="text-[11px] text-destructive">{errors.state.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label required>6 Digit Pincode</Label>
+                    <div className="relative flex items-center">
+                      <MapPin className="absolute left-3.5 h-4 w-4 text-primary pointer-events-none z-10" />
+                      <Input
+                        type="text"
+                        maxLength={6}
+                        placeholder="e.g. 110001"
+                        className="pl-10 font-mono text-sm tracking-widest font-semibold"
+                        {...register("pincode")}
+                        disabled={isSubmitting}
+                      />
+                    </div>
+                    {errors.pincode && (
+                      <p className="text-[11px] text-destructive">{errors.pincode.message}</p>
+                    )}
+                    <p className="text-[10px] text-muted-foreground">Standard 6-digit Indian Postal PIN code</p>
+                  </div>
+                </div>
+
                 {/* Residential Address as per Aadhaar */}
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
@@ -303,7 +343,7 @@ export default function NewLoanApplicationPage() {
                     </Badge>
                   </div>
                   <Textarea
-                    placeholder="Enter permanent house/flat no., street, landmark, city, state as printed on Aadhaar card..."
+                    placeholder="Enter permanent house/flat no., street, landmark, city as printed on Aadhaar card..."
                     rows={3}
                     className="text-sm resize-none"
                     {...register("residentialAddress")}
@@ -312,26 +352,6 @@ export default function NewLoanApplicationPage() {
                   {errors.residentialAddress && (
                     <p className="text-[11px] text-destructive">{errors.residentialAddress.message}</p>
                   )}
-                </div>
-
-                {/* 6 Digit Pincode */}
-                <div className="space-y-1.5">
-                  <Label required>6 Digit Pincode</Label>
-                  <div className="relative flex items-center max-w-[220px]">
-                    <MapPin className="absolute left-3.5 h-4 w-4 text-primary pointer-events-none z-10" />
-                    <Input
-                      type="text"
-                      maxLength={6}
-                      placeholder="e.g. 110001"
-                      className="pl-10 font-mono text-sm tracking-widest font-semibold"
-                      {...register("pincode")}
-                      disabled={isSubmitting}
-                    />
-                  </div>
-                  {errors.pincode && (
-                    <p className="text-[11px] text-destructive">{errors.pincode.message}</p>
-                  )}
-                  <p className="text-[10px] text-muted-foreground">Standard 6-digit Indian Postal PIN code</p>
                 </div>
               </CardContent>
             </Card>

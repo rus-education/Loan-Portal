@@ -51,6 +51,7 @@ interface LoanDetail {
   studentName: string;
   contactNumber: string;
   email?: string;
+  state?: string;
   residentialAddress?: string;
   pincode?: string;
   branchId: {
@@ -686,11 +687,19 @@ export default function LoanDetailPage() {
                     <span className="font-mono text-foreground">{loan.email}</span>
                   </div>
                 )}
+                {(loan.state || loan.pincode) && (
+                  <div className="flex justify-between py-1.5 border-b border-border/40">
+                    <span className="text-muted-foreground">State & PIN:</span>
+                    <span className="font-medium text-foreground">
+                      {loan.state || "—"}{loan.pincode ? ` • PIN: ${loan.pincode}` : ""}
+                    </span>
+                  </div>
+                )}
                 {loan.residentialAddress && (
                   <div className="flex flex-col gap-1 py-1.5 border-b border-border/40">
                     <span className="text-muted-foreground">Residential Address (Aadhaar):</span>
                     <span className="font-medium text-foreground bg-muted/30 p-2 rounded-lg border border-border/50 leading-relaxed">
-                      {loan.residentialAddress} {loan.pincode ? `• PIN: ${loan.pincode}` : ""}
+                      {loan.residentialAddress}
                     </span>
                   </div>
                 )}

@@ -15,8 +15,9 @@ export interface ILoanApplication extends Document {
   studentName: string;
   contactNumber: string;
   email?: string;
-  residentialAddress?: string;
+  state?: string;
   pincode?: string;
+  residentialAddress?: string;
   country: string;
   universityCollege?: string;
   course: string;
@@ -68,16 +69,22 @@ const LoanApplicationSchema = new Schema<ILoanApplication>(
       default: "",
       index: true,
     },
-    residentialAddress: {
+    state: {
       type: String,
       trim: true,
       default: "",
+      index: true,
     },
     pincode: {
       type: String,
       trim: true,
       default: "",
       index: true,
+    },
+    residentialAddress: {
+      type: String,
+      trim: true,
+      default: "",
     },
     country: {
       type: String,

@@ -34,17 +34,23 @@ export const loanFormSchema = z.object({
     .trim()
     .toLowerCase(),
 
-  // Residential Address (as mentioned in Aadhaar)
-  residentialAddress: z
+  // State / Union Territory (Drop-down)
+  state: z
     .string()
-    .min(5, "Please enter full residential address as mentioned in Aadhaar")
-    .max(500, "Address cannot exceed 500 characters")
+    .min(1, "Please select state / union territory")
     .trim(),
 
   // 6 Digit Pincode
   pincode: z
     .string()
     .regex(INDIAN_PINCODE_REGEX, "Please enter a valid 6-digit Indian PIN code (e.g. 110001)")
+    .trim(),
+
+  // Residential Address (as mentioned in Aadhaar)
+  residentialAddress: z
+    .string()
+    .min(5, "Please enter full residential address as mentioned in Aadhaar")
+    .max(500, "Address cannot exceed 500 characters")
     .trim(),
 
   // Country Applied
@@ -111,6 +117,45 @@ export const loanFormSchema = z.object({
 });
 
 export type LoanFormData = z.infer<typeof loanFormSchema>;
+
+export const INDIAN_STATES = [
+  "Andhra Pradesh",
+  "Arunachal Pradesh",
+  "Assam",
+  "Bihar",
+  "Chhattisgarh",
+  "Goa",
+  "Gujarat",
+  "Haryana",
+  "Himachal Pradesh",
+  "Jharkhand",
+  "Karnataka",
+  "Kerala",
+  "Madhya Pradesh",
+  "Maharashtra",
+  "Manipur",
+  "Meghalaya",
+  "Mizoram",
+  "Nagaland",
+  "Odisha",
+  "Punjab",
+  "Rajasthan",
+  "Sikkim",
+  "Tamil Nadu",
+  "Telangana",
+  "Tripura",
+  "Uttar Pradesh",
+  "Uttarakhand",
+  "West Bengal",
+  "Andaman and Nicobar Islands",
+  "Chandigarh",
+  "Dadra and Nagar Haveli and Daman and Diu",
+  "Delhi (National Capital Territory of Delhi)",
+  "Jammu and Kashmir",
+  "Ladakh",
+  "Lakshadweep",
+  "Puducherry",
+] as const;
 
 export const CO_APPLICANT_RELATIONS = [
   "Father",
