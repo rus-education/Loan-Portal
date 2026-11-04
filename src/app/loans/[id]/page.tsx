@@ -145,11 +145,6 @@ export default function LoanDetailPage() {
   const [adminSaveSuccess, setAdminSaveSuccess] = React.useState<string | null>(null);
   const [adminSaveError, setAdminSaveError] = React.useState<string | null>(null);
 
-  // Branch user remarks state
-  const [branchRemarks, setBranchRemarks] = React.useState("");
-  const [isSavingBranchRemarks, setIsSavingBranchRemarks] = React.useState(false);
-  const [branchSaveSuccess, setBranchSaveSuccess] = React.useState<string | null>(null);
-
   // SuperAdmin Data Correction Modal state
   const [isCorrectionOpen, setIsCorrectionOpen] = React.useState(false);
   const [isWhatsAppOpen, setIsWhatsAppOpen] = React.useState(false);
@@ -193,7 +188,6 @@ export default function LoanDetailPage() {
 
         const l: LoanDetail = data.data;
         setLoan(l);
-        setBranchRemarks(l.branchRemarks || "");
         setAdminStatus(l.status);
         setAdminStage(l.currentStage || "Initial Inquiry");
         setAdminRemarks(l.adminRemarks || "");
@@ -225,7 +219,6 @@ export default function LoanDetailPage() {
   }, [loanId, isAuthLoading, currentUser, reloadTrigger]);
 
   const isAdminOrSuper = currentUser?.role === "ADMIN" || currentUser?.role === "SUPERADMIN";
-  const isBranchUser = currentUser?.role === "BRANCH_USER";
 
   // Check if admin form has uncommitted changes
   const hasAdminChanges =
@@ -279,38 +272,6 @@ export default function LoanDetailPage() {
       toast.error("Failed to update status");
     } finally {
       setIsAdminSaving(false);
-    }
-  };
-
-  // Handle Branch Counselor update
-  const handleSaveBranchRemarks = async () => {
-    if (!loan) return;
-    setIsSavingBranchRemarks(true);
-    setBranchSaveSuccess(null);
-
-    try {
-      const res = await apiFetch(`/api/loans/${loanId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ branchRemarks }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok || !data.success) {
-        alert(data.error || "Failed to update branch remarks");
-        return;
-      }
-
-      setLoan(data.data);
-      setBranchSaveSuccess("Branch counselor observations saved successfully.");
-      toast.success("Branch counselor remarks saved successfully");
-      setTimeout(() => setBranchSaveSuccess(null), 4000);
-    } catch {
-      alert("Network error occurred while saving branch remarks");
-      toast.error("Failed to save branch remarks");
-    } finally {
-      setIsSavingBranchRemarks(false);
     }
   };
 
@@ -810,80 +771,6 @@ export default function LoanDetailPage() {
               </CardContent>
             </Card>
           </div>
-
-          {/* Branch Counselor Remarks Card */}
-          <Card className="glass-card border-border/80">
-            <CardHeader className="pb-3 border-b border-border/50">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-semibold flex items-center gap-2 text-foreground">
-                  <MessageSquare className="h-4 w-4 text-indigo-500" />
-                  <span>Branch Counselor Remarks & Initial Observations</span>
-                </CardTitle>
-                {isBranchUser ? (
-                  <Badge variant="info" className="text-[10px]">
-                    Editable by Counselor
-                  </Badge>
-                ) : (
-                  <Badge variant="outline" className="text-[10px]">
-                    Read-Only Branch Remarks
-                  </Badge>
-                )}
-              </div>
-              <CardDescription className="text-xs">
-                Counselor notes recorded during initial in-person student interview at branch
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-4 space-y-3">
-              {isBranchUser ? (
-                <>
-                  <Textarea
-                    value={branchRemarks}
-                    onChange={(e) => setBranchRemarks(e.target.value)}
-                    rows={3}
-                    placeholder="Enter counselor observations regarding student profile, financial credibility, or parent background..."
-                    disabled={isSavingBranchRemarks}
-                    className="text-xs"
-                  />
-                  {branchSaveSuccess && (
-                    <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1.5">
-                      <CheckCircle2 className="h-3.5 w-3.5" />
-                      <span>{branchSaveSuccess}</span>
-                    </p>
-                  )}
-                  <div className="flex justify-end">
-                    <Button
-                      onClick={handleSaveBranchRemarks}
-                      size="sm"
-                      disabled={isSavingBranchRemarks || branchRemarks === (loan.branchRemarks || "")}
-                      className="gap-1.5 text-xs h-8"
-                    >
-                      {isSavingBranchRemarks ? (
-                        <>
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                          <span>Saving...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Save className="h-3.5 w-3.5" />
-                          <span>Save Counselor Remarks</span>
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </>
-              ) : (
-                <div className="rounded-xl border border-border/60 bg-muted/20 p-4 text-xs text-foreground leading-relaxed">
-                  {loan.branchRemarks ? (
-                    <p className="whitespace-pre-wrap">{loan.branchRemarks}</p>
-                  ) : (
-                    <p className="italic text-muted-foreground">
-                      No counselor remarks were recorded during branch entry.
-                    </p>
-                  )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
         </div>
 
         {/* ========================================================================= */}
