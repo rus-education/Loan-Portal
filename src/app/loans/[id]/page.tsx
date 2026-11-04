@@ -70,6 +70,8 @@ interface LoanDetail {
   neetScore?: number | null;
   coApplicantRelation?: string;
   coApplicantDetails?: string;
+  parentName?: string;
+  cibilScore?: number | null;
   intakeMonth: string;
   intakeYear: number;
   parentGuardianIncomeSource: string;
@@ -127,6 +129,8 @@ export default function LoanDetailPage() {
   const [adminStatus, setAdminStatus] = React.useState<WorkflowStatus>("Logged in");
   const router = useRouter();
   const [adminRemarks, setAdminRemarks] = React.useState<string>("");
+  const [adminParentName, setAdminParentName] = React.useState<string>("");
+  const [adminCibilScore, setAdminCibilScore] = React.useState<string>("");
   const [transitionNote, setTransitionNote] = React.useState<string>("");
   const [isAdminSaving, setIsAdminSaving] = React.useState(false);
   const [adminSaveSuccess, setAdminSaveSuccess] = React.useState<string | null>(null);
@@ -140,6 +144,8 @@ export default function LoanDetailPage() {
   const [corrCourse, setCorrCourse] = React.useState("");
   const [corrCountry, setCorrCountry] = React.useState("");
   const [corrLoanAmount, setCorrLoanAmount] = React.useState<number>(0);
+  const [corrParentName, setCorrParentName] = React.useState("");
+  const [corrCibilScore, setCorrCibilScore] = React.useState("");
   const [corrIntakeMonth, setCorrIntakeMonth] = React.useState("");
   const [corrIntakeYear, setCorrIntakeYear] = React.useState<number>(2025);
   const [corrIncomeSource, setCorrIncomeSource] = React.useState("");
@@ -177,6 +183,10 @@ export default function LoanDetailPage() {
         setLoan(l);
         setAdminStatus(l.status);
         setAdminRemarks(l.adminRemarks || "");
+        setAdminParentName(l.parentName || "");
+        setAdminCibilScore(
+          l.cibilScore !== undefined && l.cibilScore !== null ? String(l.cibilScore) : ""
+        );
 
         // Sync correction form
         setCorrStudentName(l.studentName || "");
@@ -184,6 +194,10 @@ export default function LoanDetailPage() {
         setCorrCourse(l.course || "");
         setCorrCountry(l.country || "");
         setCorrLoanAmount(l.loanAmount || 0);
+        setCorrParentName(l.parentName || "");
+        setCorrCibilScore(
+          l.cibilScore !== undefined && l.cibilScore !== null ? String(l.cibilScore) : ""
+        );
         setCorrIntakeMonth(l.intakeMonth || "");
         setCorrIntakeYear(l.intakeYear || 2025);
         setCorrIncomeSource(l.parentGuardianIncomeSource || "");
@@ -211,9 +225,12 @@ export default function LoanDetailPage() {
     loan &&
     (adminStatus !== loan.status ||
       adminRemarks !== (loan.adminRemarks || "") ||
+      adminParentName !== (loan.parentName || "") ||
+      adminCibilScore !==
+        (loan.cibilScore !== undefined && loan.cibilScore !== null ? String(loan.cibilScore) : "") ||
       transitionNote.trim().length > 0);
 
-  // Handle Admin update: Status, Admin Remarks
+  // Handle Admin update: Status, Admin Remarks, Parent Name, CIBIL Score
   const handleSaveAdminDecision = async () => {
     if (!loan) return;
     setIsAdminSaving(true);
@@ -221,10 +238,17 @@ export default function LoanDetailPage() {
     setAdminSaveError(null);
 
     try {
+      const parsedCibil =
+        adminCibilScore.trim() === "" || isNaN(Number(adminCibilScore.trim()))
+          ? null
+          : Number(adminCibilScore.trim());
+
       const payload: Record<string, unknown> = {
         status: adminStatus,
         currentStage: adminStatus,
         adminRemarks: adminRemarks,
+        parentName: adminParentName.trim(),
+        cibilScore: parsedCibil,
       };
 
       if (transitionNote.trim()) {
@@ -247,8 +271,14 @@ export default function LoanDetailPage() {
       setLoan(data.data);
       setAdminStatus(data.data.status);
       setAdminRemarks(data.data.adminRemarks || "");
+      setAdminParentName(data.data.parentName || "");
+      setAdminCibilScore(
+        data.data.cibilScore !== undefined && data.data.cibilScore !== null
+          ? String(data.data.cibilScore)
+          : ""
+      );
       setTransitionNote("");
-      setAdminSaveSuccess("Administrative decision and workflow status updated successfully.");
+      setAdminSaveSuccess("Administrative decision, Parent Name, and CIBIL score updated successfully.");
       toast.success(`Workflow status updated to '${adminStatus}'`);
       setTimeout(() => setAdminSaveSuccess(null), 5000);
     } catch {
@@ -276,6 +306,11 @@ export default function LoanDetailPage() {
           course: corrCourse.trim(),
           country: corrCountry.trim(),
           loanAmount: Number(corrLoanAmount),
+          parentName: corrParentName.trim(),
+          cibilScore:
+            corrCibilScore.trim() === "" || isNaN(Number(corrCibilScore.trim()))
+              ? null
+              : Number(corrCibilScore.trim()),
           intakeMonth: corrIntakeMonth,
           intakeYear: Number(corrIntakeYear),
           parentGuardianIncomeSource: corrIncomeSource.trim(),
@@ -691,6 +726,56 @@ export default function LoanDetailPage() {
                   <span className="text-muted-foreground">SDM Identification:</span>
                   <span className="font-mono font-bold text-primary">{loan.sdmId}</span>
                 </div>
+                <div className="flex justify-between py-1.5 border-b border-border/40">
+                  <span className="text-muted-foreground">Parent Name:</span>
+                  <span className="font-semibold text-foreground">
+                    {loan.parentName ? (
+                      loan.parentName
+                    ) : (
+                      <span className="text-muted-foreground italic text-[11px] font-normal">
+                        Pending Admin Entry
+                      </span>
+                    )}
+                  </span>
+                </div>
+                <div className="flex justify-between py-1.5 border-b border-border/40">
+                  <span className="text-muted-foreground">CIBIL Score:</span>
+                  {loan.cibilScore !== undefined && loan.cibilScore !== null ? (
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className={`font-mono font-bold text-xs ${
+                          loan.cibilScore >= 750
+                            ? "text-emerald-600 dark:text-emerald-400"
+                            : loan.cibilScore >= 650
+                            ? "text-amber-600 dark:text-amber-400"
+                            : "text-rose-600 dark:text-rose-400"
+                        }`}
+                      >
+                        {loan.cibilScore}
+                      </span>
+                      <Badge
+                        variant="outline"
+                        className={`text-[9px] px-1.5 py-0 ${
+                          loan.cibilScore >= 750
+                            ? "border-emerald-500/30 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10"
+                            : loan.cibilScore >= 650
+                            ? "border-amber-500/30 text-amber-600 dark:text-amber-400 bg-amber-500/10"
+                            : "border-rose-500/30 text-rose-600 dark:text-rose-400 bg-rose-500/10"
+                        }`}
+                      >
+                        {loan.cibilScore >= 750
+                          ? "Excellent"
+                          : loan.cibilScore >= 650
+                          ? "Good"
+                          : "Low / Review"}
+                      </Badge>
+                    </div>
+                  ) : (
+                    <span className="text-muted-foreground italic text-[11px] font-normal">
+                      Pending Admin Entry
+                    </span>
+                  )}
+                </div>
                 <div className="flex justify-between py-1.5">
                   <span className="text-muted-foreground">Originating Branch:</span>
                   <span className="font-medium text-foreground">
@@ -791,7 +876,7 @@ export default function LoanDetailPage() {
                       <span>Underwriting & Workflow Adjudication Panel</span>
                     </CardTitle>
                     <CardDescription className="text-xs">
-                      Update workflow status and record official admin remarks
+                      Update workflow status, record parent credit details, and enter official admin remarks
                     </CardDescription>
                   </div>
                   <Badge variant={getStatusBadgeVariant(adminStatus)} className="self-start sm:self-auto px-2.5 py-1 text-xs">
@@ -820,6 +905,84 @@ export default function LoanDetailPage() {
                       </option>
                     ))}
                   </Select>
+                </div>
+
+                {/* Admin-Only Verification Fields: Parent Name & CIBIL Score */}
+                <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 border-b border-primary/15 pb-2">
+                    <div className="flex items-center gap-1.5">
+                      <ShieldCheck className="h-4 w-4 text-primary" />
+                      <span className="text-xs font-bold text-foreground">
+                        Parent Profile & Credit Assessment (Admin Only)
+                      </span>
+                    </div>
+                    <Badge variant="outline" className="text-[10px] border-primary/30 text-primary font-medium w-fit">
+                      Visible to Branch User once filled
+                    </Badge>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2 pt-1">
+                    {/* Parent Name */}
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-foreground flex items-center justify-between">
+                        <span>Parent Name</span>
+                        <span className="text-[10px] text-muted-foreground">Co-Borrower / Guardian</span>
+                      </label>
+                      <Input
+                        type="text"
+                        placeholder="e.g. Ramesh Deshmukh"
+                        value={adminParentName}
+                        onChange={(e) => setAdminParentName(e.target.value)}
+                        className="h-9 text-xs bg-background"
+                      />
+                      <p className="text-[10px] text-muted-foreground">
+                        Filled by Admin only • Shown below Student ID section
+                      </p>
+                    </div>
+
+                    {/* CIBIL Score */}
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                          <span>CIBIL Score</span>
+                          {adminCibilScore && !isNaN(Number(adminCibilScore)) && (
+                            <Badge
+                              variant="outline"
+                              className={`text-[9px] px-1.5 py-0 ${
+                                Number(adminCibilScore) >= 750
+                                  ? "border-emerald-500/30 text-emerald-600 bg-emerald-500/10"
+                                  : Number(adminCibilScore) >= 650
+                                  ? "border-amber-500/30 text-amber-600 bg-amber-500/10"
+                                  : "border-rose-500/30 text-rose-600 bg-rose-500/10"
+                              }`}
+                            >
+                              {Number(adminCibilScore) >= 750
+                                ? "Excellent"
+                                : Number(adminCibilScore) >= 650
+                                ? "Good"
+                                : "Low / Review"}
+                            </Badge>
+                          )}
+                        </label>
+                        <span className="text-[10px] text-muted-foreground font-mono">Range: 300 - 900</span>
+                      </div>
+                      <Input
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={3}
+                        placeholder="e.g. 785"
+                        value={adminCibilScore}
+                        onChange={(e) => {
+                          const digits = e.target.value.replace(/\D/g, "").slice(0, 3);
+                          setAdminCibilScore(digits);
+                        }}
+                        className="h-9 font-mono text-xs font-semibold bg-background"
+                      />
+                      <p className="text-[10px] text-muted-foreground">
+                        Filled by Admin only • Credit bureau score
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Admin Remarks Editor */}
@@ -887,6 +1050,12 @@ export default function LoanDetailPage() {
                         onClick={() => {
                           setAdminStatus(loan.status);
                           setAdminRemarks(loan.adminRemarks || "");
+                          setAdminParentName(loan.parentName || "");
+                          setAdminCibilScore(
+                            loan.cibilScore !== undefined && loan.cibilScore !== null
+                              ? String(loan.cibilScore)
+                              : ""
+                          );
                           setTransitionNote("");
                         }}
                         disabled={isAdminSaving}
@@ -943,8 +1112,50 @@ export default function LoanDetailPage() {
               </CardHeader>
               <CardContent className="p-4 space-y-3 text-xs">
                 <div className="flex justify-between py-1.5 border-b border-border/40">
-                  <span className="text-muted-foreground">Current Milestone Stage:</span>
-                  <span className="font-semibold text-foreground">{loan.currentStage}</span>
+                  <span className="text-muted-foreground">Admin Verified Parent Name:</span>
+                  <span className="font-semibold text-foreground">
+                    {loan.parentName ? (
+                      loan.parentName
+                    ) : (
+                      <span className="italic text-muted-foreground font-normal">Pending Admin Entry</span>
+                    )}
+                  </span>
+                </div>
+                <div className="flex justify-between py-1.5 border-b border-border/40">
+                  <span className="text-muted-foreground">Admin Verified CIBIL Score:</span>
+                  {loan.cibilScore !== undefined && loan.cibilScore !== null ? (
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className={`font-mono font-bold text-xs ${
+                          loan.cibilScore >= 750
+                            ? "text-emerald-600 dark:text-emerald-400"
+                            : loan.cibilScore >= 650
+                            ? "text-amber-600 dark:text-amber-400"
+                            : "text-rose-600 dark:text-rose-400"
+                        }`}
+                      >
+                        {loan.cibilScore}
+                      </span>
+                      <Badge
+                        variant="outline"
+                        className={`text-[9px] px-1.5 py-0 ${
+                          loan.cibilScore >= 750
+                            ? "border-emerald-500/30 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10"
+                            : loan.cibilScore >= 650
+                            ? "border-amber-500/30 text-amber-600 dark:text-amber-400 bg-amber-500/10"
+                            : "border-rose-500/30 text-rose-600 dark:text-rose-400 bg-rose-500/10"
+                        }`}
+                      >
+                        {loan.cibilScore >= 750 ? "Excellent" : loan.cibilScore >= 650 ? "Good" : "Low / Review"}
+                      </Badge>
+                    </div>
+                  ) : (
+                    <span className="italic text-muted-foreground font-normal">Pending Admin Entry</span>
+                  )}
+                </div>
+                <div className="flex justify-between py-1.5 border-b border-border/40">
+                  <span className="text-muted-foreground">Current Operational Status:</span>
+                  <span className="font-semibold text-foreground">{loan.status}</span>
                 </div>
                 <div>
                   <span className="text-muted-foreground block mb-1.5 font-medium">
@@ -1187,6 +1398,37 @@ export default function LoanDetailPage() {
                 </div>
               </div>
 
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-foreground">
+                    Parent Name
+                  </label>
+                  <Input
+                    value={corrParentName}
+                    onChange={(e) => setCorrParentName(e.target.value)}
+                    className="h-9 text-xs"
+                    placeholder="Parent / Guardian Name"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-foreground">
+                    CIBIL Score (300 - 900)
+                  </label>
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={3}
+                    value={corrCibilScore}
+                    onChange={(e) =>
+                      setCorrCibilScore(e.target.value.replace(/\D/g, "").slice(0, 3))
+                    }
+                    className="h-9 text-xs font-mono"
+                    placeholder="750"
+                  />
+                </div>
+              </div>
+
               <div className="grid gap-4 sm:grid-cols-3">
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-foreground">
@@ -1345,6 +1587,8 @@ export default function LoanDetailPage() {
             neetScore: loan.neetScore,
             coApplicantRelation: loan.coApplicantRelation,
             coApplicantDetails: loan.coApplicantDetails,
+            parentName: loan.parentName,
+            cibilScore: loan.cibilScore,
             branchRemarks: loan.branchRemarks,
             sdmId: loan.sdmId,
             branchName: loan.branchId?.name,

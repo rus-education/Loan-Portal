@@ -15,6 +15,8 @@ export interface LoanWhatsAppPayload {
   neetScore?: number | string | null;
   coApplicantRelation?: string;
   coApplicantDetails?: string;
+  parentName?: string;
+  cibilScore?: number | string | null;
   branchRemarks?: string;
   checklistUrl?: string;
   sdmId?: string;
@@ -96,9 +98,13 @@ export function generateWhatsAppMessage(data: LoanWhatsAppPayload): string {
     ``,
     `*3. LOAN REQUIREMENT & CO-APPLICANT DETAILS*`,
     `- Loan Requirement: ${amountDisplay}`,
+    data.parentName ? `- Parent Name: ${data.parentName.trim()}` : null,
+    data.cibilScore !== undefined && data.cibilScore !== null && data.cibilScore !== ""
+      ? `- Parent CIBIL Score: ${data.cibilScore}`
+      : null,
     `- Co-Applicant Relation: ${data.coApplicantRelation?.trim() || "N/A"}`,
     `- Brief Details about Co-Applicant: ${data.coApplicantDetails?.trim() || "N/A"}`,
-  ];
+  ].filter((line): line is string => line !== null);
 
   if (data.branchRemarks && data.branchRemarks.trim()) {
     lines.push(``);

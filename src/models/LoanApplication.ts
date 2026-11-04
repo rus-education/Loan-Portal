@@ -26,6 +26,8 @@ export interface ILoanApplication extends Document {
   neetScore?: number | null;
   coApplicantRelation?: string;
   coApplicantDetails?: string;
+  parentName?: string;
+  cibilScore?: number | null;
   branchId: Types.ObjectId;
   intakeMonth?: string;
   intakeYear?: number;
@@ -127,6 +129,17 @@ const LoanApplicationSchema = new Schema<ILoanApplication>(
       type: String,
       trim: true,
       default: "",
+    },
+    parentName: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    cibilScore: {
+      type: Number,
+      default: null,
+      min: [0, "CIBIL score cannot be less than 0"],
+      max: [900, "CIBIL score cannot exceed 900"],
     },
     branchId: {
       type: Schema.Types.ObjectId,

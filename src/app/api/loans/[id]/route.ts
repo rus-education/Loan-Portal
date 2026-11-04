@@ -169,6 +169,20 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
         loan.currentStage = body.currentStage;
         newValue.currentStage = body.currentStage;
       }
+      if ("parentName" in body) {
+        oldValue.parentName = loan.parentName;
+        loan.parentName = typeof body.parentName === "string" ? body.parentName.trim() : "";
+        newValue.parentName = loan.parentName;
+      }
+      if ("cibilScore" in body) {
+        oldValue.cibilScore = loan.cibilScore;
+        const parsedCibil =
+          body.cibilScore === null || body.cibilScore === "" || isNaN(Number(body.cibilScore))
+            ? null
+            : Number(body.cibilScore);
+        loan.cibilScore = parsedCibil;
+        newValue.cibilScore = parsedCibil;
+      }
     } else if (user.role === "BRANCH_USER") {
       // Branch user updates branch remarks and application fields, but NEVER status or adminRemarks
       const branchEditableFields = [

@@ -28,3 +28,4 @@ export async function GET() {
     return NextResponse.json({ error: "Failed to serve checklist document" }, { status: 500 });
   }
 }
+

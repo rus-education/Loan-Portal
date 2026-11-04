@@ -79,15 +79,22 @@ export function validateLoanUpdatePermissions(
     return { allowed: true };
   }
 
-  // 3. Admin can update workflow status, admin remarks, and current processing stage
+  // 3. Admin can update workflow status, admin remarks, parent name, cibil score, and current processing stage
   if (user.role === "ADMIN") {
-    const adminAllowedFields = new Set(["status", "adminRemarks", "currentStage", "statusRemarks"]);
+    const adminAllowedFields = new Set([
+      "status",
+      "adminRemarks",
+      "currentStage",
+      "statusRemarks",
+      "parentName",
+      "cibilScore",
+    ]);
     const requestedFields = Object.keys(updateFields);
     for (const field of requestedFields) {
       if (!adminAllowedFields.has(field)) {
         return {
           allowed: false,
-          reason: `Admins can only update workflow status, admin remarks, and current stage. Field '${field}' is restricted.`,
+          reason: `Admins can only update workflow status, admin remarks, parent name, and CIBIL score. Field '${field}' is restricted.`,
         };
       }
     }
@@ -100,12 +107,18 @@ export function validateLoanUpdatePermissions(
       return { allowed: false, reason: "Branch users cannot modify applications of other branches" };
     }
 
-    // Branch users cannot touch status or adminRemarks
+    // Branch users cannot touch status, adminRemarks, parentName, or cibilScore
     if ("status" in updateFields) {
       return { allowed: false, reason: "Branch users cannot modify workflow status" };
     }
     if ("adminRemarks" in updateFields) {
       return { allowed: false, reason: "Branch users cannot modify admin remarks" };
+    }
+    if ("parentName" in updateFields || "cibilScore" in updateFields) {
+      return {
+        allowed: false,
+        reason: "Branch users cannot modify Parent Name or CIBIL Score. These are admin-managed fields.",
+      };
     }
     if ("branchId" in updateFields) {
       return { allowed: false, reason: "Branch users cannot reassign branch ownership" };
