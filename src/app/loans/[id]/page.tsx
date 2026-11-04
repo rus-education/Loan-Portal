@@ -793,10 +793,13 @@ export default function LoanDetailPage() {
                   </span>
                 </div>
                 {!isAdminOrSuper && (
-                  <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-2.5 py-1.5 text-[11px] text-amber-800 dark:text-amber-200 flex items-center gap-1.5 mt-2">
-                    <Lock className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
-                    <span>
-                      <strong>Branch Notice:</strong> Parent Name & CIBIL Score are filled by Admin only and cannot be modified by branch users.
+                  <div className="rounded-lg border border-blue-200/80 bg-blue-50/80 dark:border-blue-800/50 dark:bg-blue-950/40 px-3 py-2 text-[11px] flex items-center gap-2 mt-2 shadow-xs">
+                    <Lock className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
+                    <span className="leading-snug">
+                      <strong className="font-semibold text-blue-950 dark:text-blue-200">Branch Notice:</strong>{" "}
+                      <span className="text-slate-700 dark:text-slate-200 font-medium">
+                        Parent Name & CIBIL Score are filled by Admin only and cannot be modified by branch users.
+                      </span>
                     </span>
                   </div>
                 )}
@@ -1131,10 +1134,13 @@ export default function LoanDetailPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-4 space-y-3 text-xs">
-                <div className="rounded-xl border border-blue-500/30 bg-blue-500/10 p-3 text-xs text-blue-900 dark:text-blue-200 flex items-start gap-2.5 mb-2">
+                <div className="rounded-xl border border-blue-200/80 bg-blue-50/80 dark:border-blue-800/50 dark:bg-blue-950/40 p-3 text-xs flex items-start gap-2.5 mb-2 shadow-xs">
                   <Lock className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
                   <div className="leading-relaxed">
-                    <span className="font-semibold">Branch Access Restriction Notice:</span> Parent Name, CIBIL Score, and administrative remarks are managed exclusively by the Central Administration. Branch counselors have strictly read-only access to these verified entries and cannot modify them.
+                    <strong className="font-semibold text-blue-950 dark:text-blue-200">Branch Access Restriction Notice:</strong>{" "}
+                    <span className="text-slate-700 dark:text-slate-200 font-medium">
+                      Parent Name, CIBIL Score, and administrative remarks are managed exclusively by the Central Administration. Branch counselors have strictly read-only access to these verified entries and cannot modify them.
+                    </span>
                   </div>
                 </div>
                 <div className="flex justify-between py-1.5 border-b border-border/40">
