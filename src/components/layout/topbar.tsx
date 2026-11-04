@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
 import { Menu, Database, CheckCircle2, XCircle } from "lucide-react";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { UserMenu } from "@/components/layout/user-menu";
@@ -40,7 +41,16 @@ export function Topbar({
 
         {/* Brand / Title for Mobile */}
         <div className="flex items-center gap-2 md:hidden">
-          <span className="text-xs font-bold tracking-tight text-foreground truncate max-w-[200px]">
+          <div className="relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white border border-border/70 p-0.5 shadow-xs overflow-hidden">
+            <Image
+              src="/logo.png"
+              alt="RUS Education Logo"
+              width={28}
+              height={28}
+              className="h-full w-full object-contain"
+            />
+          </div>
+          <span className="text-xs font-bold tracking-tight text-foreground truncate max-w-[190px]">
             RUS EDUCATION LOAN PORTAL
           </span>
         </div>

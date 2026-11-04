@@ -2,8 +2,9 @@
 
 import * as React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { X, Layers } from "lucide-react";
+import { X } from "lucide-react";
 import { getNavItemsForRole } from "@/config/navigation";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/types";
@@ -41,8 +42,14 @@ export function MobileNav({
       <div className="fixed inset-y-0 left-0 flex w-72 flex-col bg-background/95 border-r border-border/80 p-5 shadow-2xl backdrop-blur-xl animate-in slide-in-from-left duration-200">
         <div className="flex items-center justify-between pb-4 border-b border-border/60">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-indigo-600 text-white shadow-md">
-              <Layers className="h-4 w-4" />
+            <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white border border-border/70 p-0.5 shadow-sm overflow-hidden">
+              <Image
+                src="/logo.png"
+                alt="RUS Education Logo"
+                width={36}
+                height={36}
+                className="h-full w-full object-contain"
+              />
             </div>
             <div>
               <span className="text-xs font-bold tracking-tight text-foreground block leading-tight">

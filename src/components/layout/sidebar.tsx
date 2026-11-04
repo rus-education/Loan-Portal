@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -49,9 +50,16 @@ export function Sidebar({
     >
       {/* Brand Header */}
       <div className="flex h-16 items-center justify-between px-4 border-b border-border/60">
-        <Link href="/" className="flex items-center gap-3 overflow-hidden">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-indigo-600 text-white shadow-md shadow-primary/20">
-            <Layers className="h-5 w-5" />
+        <Link href="/" className="flex items-center gap-3 overflow-hidden group">
+          <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white border border-border/80 p-0.5 shadow-sm overflow-hidden group-hover:scale-105 transition-transform">
+            <Image
+              src="/logo.png"
+              alt="RUS Education Logo"
+              width={40}
+              height={40}
+              className="h-full w-full object-contain"
+              priority
+            />
           </div>
           {!isCollapsed && (
             <div className="flex flex-col min-w-0">

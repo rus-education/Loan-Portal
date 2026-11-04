@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Layers,
@@ -130,8 +131,15 @@ export default function LoginPage() {
       <div className="relative z-10 w-full max-w-md space-y-6">
         {/* Brand Header */}
         <div className="text-center space-y-2">
-          <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-primary to-indigo-600 text-white shadow-lg shadow-primary/25 mb-1">
-            <Layers className="h-6 w-6" />
+          <div className="inline-flex h-20 w-20 items-center justify-center rounded-full bg-white border-2 border-border/80 shadow-xl p-1 mb-1 ring-8 ring-primary/10 overflow-hidden">
+            <Image
+              src="/logo.png"
+              alt="RUS Education Logo"
+              width={80}
+              height={80}
+              className="h-full w-full object-contain"
+              priority
+            />
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
             RUS EDUCATION LOAN PORTAL
