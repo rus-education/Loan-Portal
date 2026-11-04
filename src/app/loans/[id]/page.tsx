@@ -1067,8 +1067,8 @@ export default function LoanDetailPage() {
 
                     <Button
                       onClick={handleSaveAdminDecision}
-                      disabled={isAdminSaving || !hasAdminChanges}
-                      className="gap-2 text-xs h-9 px-4 w-full sm:w-auto shadow-sm"
+                      disabled={isAdminSaving}
+                      className="gap-2 text-xs font-semibold h-9 px-5 text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 shadow-sm shadow-blue-600/20 active:scale-[0.98] transition-all rounded-xl w-full sm:w-auto cursor-pointer"
                     >
                       {isAdminSaving ? (
                         <>
