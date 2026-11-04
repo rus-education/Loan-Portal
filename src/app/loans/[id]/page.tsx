@@ -105,14 +105,14 @@ const WORKFLOW_STAGES = [
 ];
 
 const WORKFLOW_STATUSES: WorkflowStatus[] = [
-  "Logged in",
-  "In Process",
-  "Sanctioned",
-  "Disbursed",
+  "Closed",
   "Deffered",
+  "In Process",
+  "Logged in",
   "No response",
   "Rejected",
-  "Closed",
+  "Sanctioned",
+  "Disbursed",
 ];
 
 // Linear pipeline sequence for the visual stepper bar

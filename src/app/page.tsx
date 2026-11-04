@@ -173,7 +173,7 @@ export default async function HomePage() {
   // Dashboard Cards Definition
   const statusCards = [
     {
-      title: "Total Applications",
+      title: "Total Application",
       count: metrics.total,
       subtitle: "All records",
       icon: FileText,
@@ -181,12 +181,20 @@ export default async function HomePage() {
       colorClass: "bg-primary/10 text-primary border-primary/20",
     },
     {
-      title: "Logged in",
-      count: metrics.loggedIn,
-      subtitle: "Newly registered",
-      icon: Clock,
-      href: "/loans?status=Logged%20in",
-      colorClass: "bg-amber-500/10 text-amber-500 border-amber-500/20",
+      title: "Closed",
+      count: metrics.closed,
+      subtitle: "Completed & closed",
+      icon: Archive,
+      href: "/loans?status=Closed",
+      colorClass: "bg-slate-500/10 text-slate-500 border-slate-500/20",
+    },
+    {
+      title: "Deffered",
+      count: metrics.deffered,
+      subtitle: "Put on hold",
+      icon: Clock3,
+      href: "/loans?status=Deffered",
+      colorClass: "bg-purple-500/10 text-purple-500 border-purple-500/20",
     },
     {
       title: "In Process",
@@ -197,28 +205,12 @@ export default async function HomePage() {
       colorClass: "bg-sky-500/10 text-sky-500 border-sky-500/20",
     },
     {
-      title: "Sanctioned",
-      count: metrics.sanctioned,
-      subtitle: "Sanction issued",
-      icon: CheckCircle2,
-      href: "/loans?status=Sanctioned",
-      colorClass: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
-    },
-    {
-      title: "Disbursed",
-      count: metrics.disbursed,
-      subtitle: "Loan disbursed",
-      icon: IndianRupee,
-      href: "/loans?status=Disbursed",
-      colorClass: "bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/20",
-    },
-    {
-      title: "Deffered",
-      count: metrics.deffered,
-      subtitle: "Put on hold",
-      icon: Clock3,
-      href: "/loans?status=Deffered",
-      colorClass: "bg-purple-500/10 text-purple-500 border-purple-500/20",
+      title: "Logged in",
+      count: metrics.loggedIn,
+      subtitle: "Newly registered",
+      icon: Clock,
+      href: "/loans?status=Logged%20in",
+      colorClass: "bg-amber-500/10 text-amber-500 border-amber-500/20",
     },
     {
       title: "No response",
@@ -237,12 +229,20 @@ export default async function HomePage() {
       colorClass: "bg-rose-500/10 text-rose-500 border-rose-500/20",
     },
     {
-      title: "Closed",
-      count: metrics.closed,
-      subtitle: "Completed & closed",
-      icon: Archive,
-      href: "/loans?status=Closed",
-      colorClass: "bg-slate-500/10 text-slate-500 border-slate-500/20",
+      title: "Sanctioned",
+      count: metrics.sanctioned,
+      subtitle: "Sanction issued",
+      icon: CheckCircle2,
+      href: "/loans?status=Sanctioned",
+      colorClass: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+    },
+    {
+      title: "Disbursed",
+      count: metrics.disbursed,
+      subtitle: "Loan disbursed",
+      icon: IndianRupee,
+      href: "/loans?status=Disbursed",
+      colorClass: "bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/20",
     },
   ];
 
@@ -334,8 +334,8 @@ export default async function HomePage() {
                   className="group block rounded-2xl focus:outline-none h-full transition-transform"
                 >
                   <Card className="glass-card card-hover h-full flex flex-col justify-between p-0 border border-border/80 shadow-xs">
-                    <CardHeader className="p-3.5 pb-1 flex flex-row items-center justify-between space-y-0 gap-1.5">
-                      <span className="text-[11px] font-semibold text-muted-foreground tracking-tight group-hover:text-foreground truncate" title={card.title}>
+                    <CardHeader className="p-3 pb-1 flex flex-row items-start justify-between space-y-0 gap-1 min-h-[38px]">
+                      <span className="text-[11px] font-semibold text-muted-foreground tracking-tight group-hover:text-foreground leading-tight" title={card.title}>
                         {card.title}
                       </span>
                       <div
@@ -344,7 +344,7 @@ export default async function HomePage() {
                         <IconComponent className="h-3.5 w-3.5" />
                       </div>
                     </CardHeader>
-                    <CardContent className="p-3.5 pt-1">
+                    <CardContent className="p-3 pt-1">
                       <div className="text-2xl font-bold text-foreground font-mono tracking-tight">
                         {card.count}
                       </div>

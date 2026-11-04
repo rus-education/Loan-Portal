@@ -617,14 +617,14 @@ export default function LoansListPage() {
                   className="h-8 text-xs"
                 >
                   <option value="">All Statuses</option>
-                  <option value="Logged in">Logged in</option>
-                  <option value="In Process">In Process</option>
-                  <option value="Sanctioned">Sanctioned</option>
-                  <option value="Disbursed">Disbursed</option>
+                  <option value="Closed">Closed</option>
                   <option value="Deffered">Deffered</option>
+                  <option value="In Process">In Process</option>
+                  <option value="Logged in">Logged in</option>
                   <option value="No response">No response</option>
                   <option value="Rejected">Rejected</option>
-                  <option value="Closed">Closed</option>
+                  <option value="Sanctioned">Sanctioned</option>
+                  <option value="Disbursed">Disbursed</option>
                 </Select>
               </div>
 
