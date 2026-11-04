@@ -15,6 +15,7 @@ import {
   Award,
   Users,
   Building2,
+  Globe,
   ArrowLeft,
   AlertCircle,
   Loader2,
@@ -238,11 +239,15 @@ export default function NewLoanApplicationPage() {
                 {/* Student Name */}
                 <div className="space-y-1.5">
                   <Label required>Student Name</Label>
-                  <Input
-                    placeholder="e.g. Aarav Sharma"
-                    {...register("studentName")}
-                    disabled={isSubmitting}
-                  />
+                  <div className="relative flex items-center">
+                    <User className="absolute left-3.5 h-4 w-4 text-primary pointer-events-none z-10" />
+                    <Input
+                      placeholder="e.g. Aarav Sharma"
+                      className="pl-10 text-sm"
+                      {...register("studentName")}
+                      disabled={isSubmitting}
+                    />
+                  </div>
                   {errors.studentName && (
                     <p className="text-[11px] text-destructive">{errors.studentName.message}</p>
                   )}
@@ -253,13 +258,14 @@ export default function NewLoanApplicationPage() {
                   <div className="space-y-1.5">
                     <Label required>Contact Number</Label>
                     <div className="relative flex items-center">
-                      <span className="absolute left-3 text-xs font-semibold text-muted-foreground pointer-events-none select-none">
-                        +91
-                      </span>
+                      <div className="absolute left-3 z-10 flex items-center gap-1.5 pointer-events-none select-none text-xs font-semibold text-foreground/80 border-r border-border pr-2">
+                        <Phone className="h-3.5 w-3.5 text-primary" />
+                        <span>+91</span>
+                      </div>
                       <Input
                         type="tel"
                         placeholder="9876543210"
-                        className="pl-11 font-mono text-xs"
+                        className="pl-20 font-mono text-sm tracking-wide"
                         {...register("contactNumber")}
                         disabled={isSubmitting}
                       />
@@ -273,11 +279,11 @@ export default function NewLoanApplicationPage() {
                   <div className="space-y-1.5">
                     <Label required>Email ID</Label>
                     <div className="relative flex items-center">
-                      <Mail className="absolute left-3 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                      <Mail className="absolute left-3.5 h-4 w-4 text-primary pointer-events-none z-10" />
                       <Input
                         type="email"
                         placeholder="student.parent@gmail.com"
-                        className="pl-9 text-xs"
+                        className="pl-10 text-sm"
                         {...register("email")}
                         disabled={isSubmitting}
                       />
@@ -299,7 +305,7 @@ export default function NewLoanApplicationPage() {
                   <Textarea
                     placeholder="Enter permanent house/flat no., street, landmark, city, state as printed on Aadhaar card..."
                     rows={3}
-                    className="text-xs resize-none"
+                    className="text-sm resize-none"
                     {...register("residentialAddress")}
                     disabled={isSubmitting}
                   />
@@ -312,12 +318,12 @@ export default function NewLoanApplicationPage() {
                 <div className="space-y-1.5">
                   <Label required>6 Digit Pincode</Label>
                   <div className="relative flex items-center max-w-[220px]">
-                    <MapPin className="absolute left-3 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                    <MapPin className="absolute left-3.5 h-4 w-4 text-primary pointer-events-none z-10" />
                     <Input
                       type="text"
                       maxLength={6}
                       placeholder="e.g. 110001"
-                      className="pl-9 font-mono text-xs tracking-wider"
+                      className="pl-10 font-mono text-sm tracking-widest font-semibold"
                       {...register("pincode")}
                       disabled={isSubmitting}
                     />
@@ -348,12 +354,16 @@ export default function NewLoanApplicationPage() {
                     <Label required>Country Applied</Label>
                     <span className="text-[10px] text-muted-foreground">Popular destinations:</span>
                   </div>
-                  <Input
-                    list="country-suggestions"
-                    placeholder="e.g. Russia, Georgia, Kazakhstan..."
-                    {...register("country")}
-                    disabled={isSubmitting}
-                  />
+                  <div className="relative flex items-center">
+                    <Globe className="absolute left-3.5 h-4 w-4 text-primary pointer-events-none z-10" />
+                    <Input
+                      list="country-suggestions"
+                      placeholder="e.g. Russia, Georgia, Kazakhstan..."
+                      className="pl-10 text-sm"
+                      {...register("country")}
+                      disabled={isSubmitting}
+                    />
+                  </div>
                   <datalist id="country-suggestions">
                     {POPULAR_COUNTRIES.map((c) => (
                       <option key={c} value={c} />
@@ -365,9 +375,9 @@ export default function NewLoanApplicationPage() {
                         type="button"
                         key={c}
                         onClick={() => setValue("country", c)}
-                        className={`text-[10px] px-2 py-0.5 rounded-full border transition-all ${
+                        className={`text-[11px] px-2.5 py-0.5 rounded-full border transition-all ${
                           watchedCountry === c
-                            ? "bg-primary text-primary-foreground border-primary font-semibold"
+                            ? "bg-primary text-primary-foreground border-primary font-medium shadow-xs"
                             : "bg-muted/50 hover:bg-muted text-muted-foreground border-border/60"
                         }`}
                       >
@@ -384,10 +394,10 @@ export default function NewLoanApplicationPage() {
                 <div className="space-y-1.5">
                   <Label required>University / College</Label>
                   <div className="relative flex items-center">
-                    <Building2 className="absolute left-3 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                    <Building2 className="absolute left-3.5 h-4 w-4 text-primary pointer-events-none z-10" />
                     <Input
                       placeholder="e.g. Bashkir State Medical University"
-                      className="pl-9 text-xs"
+                      className="pl-10 text-sm"
                       {...register("universityCollege")}
                       disabled={isSubmitting}
                     />
@@ -401,12 +411,16 @@ export default function NewLoanApplicationPage() {
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-1.5">
                     <Label required>Course Applied</Label>
-                    <Input
-                      list="course-suggestions"
-                      placeholder="e.g. MBBS"
-                      {...register("course")}
-                      disabled={isSubmitting}
-                    />
+                    <div className="relative flex items-center">
+                      <GraduationCap className="absolute left-3.5 h-4 w-4 text-primary pointer-events-none z-10" />
+                      <Input
+                        list="course-suggestions"
+                        placeholder="e.g. MBBS"
+                        className="pl-10 text-sm"
+                        {...register("course")}
+                        disabled={isSubmitting}
+                      />
+                    </div>
                     <datalist id="course-suggestions">
                       {POPULAR_COURSES.map((cr) => (
                         <option key={cr} value={cr} />
@@ -418,9 +432,9 @@ export default function NewLoanApplicationPage() {
                           type="button"
                           key={cr}
                           onClick={() => setValue("course", cr)}
-                          className={`text-[10px] px-2 py-0.5 rounded-full border transition-all ${
+                          className={`text-[11px] px-2.5 py-0.5 rounded-full border transition-all ${
                             watchedCourse === cr
-                              ? "bg-primary text-primary-foreground border-primary font-semibold"
+                              ? "bg-primary text-primary-foreground border-primary font-medium shadow-xs"
                               : "bg-muted/50 hover:bg-muted text-muted-foreground border-border/60"
                           }`}
                         >
@@ -457,13 +471,13 @@ export default function NewLoanApplicationPage() {
                     </Badge>
                   </div>
                   <div className="relative flex items-center max-w-[220px]">
-                    <Award className="absolute left-3 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                    <Award className="absolute left-3.5 h-4 w-4 text-amber-500 pointer-events-none z-10" />
                     <Input
                       type="number"
                       min="0"
                       max="720"
                       placeholder="e.g. 520"
-                      className="pl-9 font-mono text-xs"
+                      className="pl-10 font-mono text-sm"
                       {...register("neetScore", {
                         setValueAs: (v) => (v === "" || v === null || isNaN(Number(v)) ? null : Number(v)),
                       })}
@@ -504,7 +518,7 @@ export default function NewLoanApplicationPage() {
                       )}
                     </div>
                     <div className="relative flex items-center">
-                      <span className="absolute left-3 font-semibold text-sm text-muted-foreground pointer-events-none">
+                      <span className="absolute left-3.5 z-10 flex items-center pointer-events-none select-none text-emerald-600 dark:text-emerald-400 font-bold text-base">
                         ₹
                       </span>
                       <Input
@@ -512,7 +526,7 @@ export default function NewLoanApplicationPage() {
                         step="50000"
                         min="10000"
                         placeholder="e.g. 2500000"
-                        className="pl-8 font-mono text-sm font-semibold"
+                        className="pl-9 font-mono text-base font-semibold"
                         {...register("loanAmount", { valueAsNumber: true })}
                         disabled={isSubmitting}
                       />
