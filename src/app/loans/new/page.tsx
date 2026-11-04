@@ -83,6 +83,8 @@ export default function NewLoanApplicationPage() {
     formState: { errors },
   } = useForm<LoanFormData>({
     resolver: zodResolver(loanFormSchema) as any,
+    mode: "onChange",
+    reValidateMode: "onChange",
     defaultValues: {
       studentName: "",
       contactNumber: "",
@@ -101,6 +103,58 @@ export default function NewLoanApplicationPage() {
       branchRemarks: "",
     },
   });
+
+  // Strictly block any non-digit key from being typed into integer/numeric fields
+  const handleNumericKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (
+      [
+        "Backspace",
+        "Delete",
+        "Tab",
+        "Escape",
+        "Enter",
+        "ArrowLeft",
+        "ArrowRight",
+        "ArrowUp",
+        "ArrowDown",
+        "Home",
+        "End",
+      ].includes(e.key) ||
+      ((e.ctrlKey || e.metaKey) && ["a", "c", "v", "x", "z"].includes(e.key.toLowerCase()))
+    ) {
+      return;
+    }
+    // Block any character that is not a numeric digit (0-9)
+    if (!/^[0-9]$/.test(e.key)) {
+      e.preventDefault();
+    }
+  };
+
+  // Block digits from being typed into student name
+  const handleNameKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (
+      [
+        "Backspace",
+        "Delete",
+        "Tab",
+        "Escape",
+        "Enter",
+        "ArrowLeft",
+        "ArrowRight",
+        "ArrowUp",
+        "ArrowDown",
+        "Home",
+        "End",
+      ].includes(e.key) ||
+      ((e.ctrlKey || e.metaKey) && ["a", "c", "v", "x", "z"].includes(e.key.toLowerCase()))
+    ) {
+      return;
+    }
+    // Block numbers 0-9
+    if (/[0-9]/.test(e.key)) {
+      e.preventDefault();
+    }
+  };
 
   const watchedAmount = useWatch({ control, name: "loanAmount" }) || 0;
   const watchedCountry = useWatch({ control, name: "country" }) || "";
@@ -246,8 +300,15 @@ export default function NewLoanApplicationPage() {
                     <User className="absolute left-3.5 h-4 w-4 text-primary pointer-events-none z-10" />
                     <Input
                       placeholder="e.g. Aarav Sharma"
-                      className="pl-10 text-sm"
-                      {...register("studentName")}
+                      className={`pl-10 text-sm ${errors.studentName ? "border-destructive focus-visible:ring-destructive/30" : ""}`}
+                      {...register("studentName", {
+                        onChange: (e) => {
+                          const sanitized = e.target.value.replace(/[0-9]/g, "");
+                          e.target.value = sanitized;
+                          setValue("studentName", sanitized, { shouldValidate: true });
+                        },
+                      })}
+                      onKeyDown={handleNameKeyDown}
                       disabled={isSubmitting}
                     />
                   </div>
@@ -267,9 +328,24 @@ export default function NewLoanApplicationPage() {
                       </div>
                       <Input
                         type="tel"
+                        inputMode="numeric"
+                        maxLength={10}
                         placeholder="9876543210"
-                        className="pl-20 font-mono text-sm tracking-wide"
-                        {...register("contactNumber")}
+                        className={`pl-20 font-mono text-sm tracking-wide ${errors.contactNumber ? "border-destructive focus-visible:ring-destructive/30" : ""}`}
+                        {...register("contactNumber", {
+                          onChange: (e) => {
+                            let digits = e.target.value.replace(/\D/g, "");
+                            if (digits.startsWith("91") && digits.length === 12) {
+                              digits = digits.slice(2);
+                            } else if (digits.startsWith("0") && digits.length === 11) {
+                              digits = digits.slice(1);
+                            }
+                            digits = digits.slice(0, 10);
+                            e.target.value = digits;
+                            setValue("contactNumber", digits, { shouldValidate: true });
+                          },
+                        })}
+                        onKeyDown={handleNumericKeyDown}
                         disabled={isSubmitting}
                       />
                     </div>
@@ -286,7 +362,7 @@ export default function NewLoanApplicationPage() {
                       <Input
                         type="email"
                         placeholder="student.parent@gmail.com"
-                        className="pl-10 text-sm"
+                        className={`pl-10 text-sm ${errors.email ? "border-destructive focus-visible:ring-destructive/30" : ""}`}
                         {...register("email")}
                         disabled={isSubmitting}
                       />
@@ -301,7 +377,11 @@ export default function NewLoanApplicationPage() {
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-1.5">
                     <Label required>State</Label>
-                    <Select {...register("state")} disabled={isSubmitting}>
+                    <Select
+                      {...register("state")}
+                      className={errors.state ? "border-destructive focus-visible:ring-destructive/30" : ""}
+                      disabled={isSubmitting}
+                    >
                       <option value="">Select State / UT</option>
                       {INDIAN_STATES.map((s) => (
                         <option key={s} value={s}>
@@ -320,10 +400,18 @@ export default function NewLoanApplicationPage() {
                       <MapPin className="absolute left-3.5 h-4 w-4 text-primary pointer-events-none z-10" />
                       <Input
                         type="text"
+                        inputMode="numeric"
                         maxLength={6}
                         placeholder="e.g. 110001"
-                        className="pl-10 font-mono text-sm tracking-widest font-semibold"
-                        {...register("pincode")}
+                        className={`pl-10 font-mono text-sm tracking-widest font-semibold ${errors.pincode ? "border-destructive focus-visible:ring-destructive/30" : ""}`}
+                        {...register("pincode", {
+                          onChange: (e) => {
+                            const digits = e.target.value.replace(/\D/g, "").slice(0, 6);
+                            e.target.value = digits;
+                            setValue("pincode", digits, { shouldValidate: true });
+                          },
+                        })}
+                        onKeyDown={handleNumericKeyDown}
                         disabled={isSubmitting}
                       />
                     </div>
@@ -345,7 +433,7 @@ export default function NewLoanApplicationPage() {
                   <Textarea
                     placeholder="Enter permanent house/flat no., street, landmark, city as printed on Aadhaar card..."
                     rows={3}
-                    className="text-sm resize-none"
+                    className={`text-sm resize-none ${errors.residentialAddress ? "border-destructive focus-visible:ring-destructive/30" : ""}`}
                     {...register("residentialAddress")}
                     disabled={isSubmitting}
                   />
@@ -379,7 +467,7 @@ export default function NewLoanApplicationPage() {
                     <Input
                       list="country-suggestions"
                       placeholder="e.g. Russia, Georgia, Kazakhstan..."
-                      className="pl-10 text-sm"
+                      className={`pl-10 text-sm ${errors.country ? "border-destructive focus-visible:ring-destructive/30" : ""}`}
                       {...register("country")}
                       disabled={isSubmitting}
                     />
@@ -394,7 +482,7 @@ export default function NewLoanApplicationPage() {
                       <button
                         type="button"
                         key={c}
-                        onClick={() => setValue("country", c)}
+                        onClick={() => setValue("country", c, { shouldValidate: true })}
                         className={`text-[11px] px-2.5 py-0.5 rounded-full border transition-all ${
                           watchedCountry === c
                             ? "bg-primary text-primary-foreground border-primary font-medium shadow-xs"
@@ -417,7 +505,7 @@ export default function NewLoanApplicationPage() {
                     <Building2 className="absolute left-3.5 h-4 w-4 text-primary pointer-events-none z-10" />
                     <Input
                       placeholder="e.g. Bashkir State Medical University"
-                      className="pl-10 text-sm"
+                      className={`pl-10 text-sm ${errors.universityCollege ? "border-destructive focus-visible:ring-destructive/30" : ""}`}
                       {...register("universityCollege")}
                       disabled={isSubmitting}
                     />
@@ -436,7 +524,7 @@ export default function NewLoanApplicationPage() {
                       <Input
                         list="course-suggestions"
                         placeholder="e.g. MBBS"
-                        className="pl-10 text-sm"
+                        className={`pl-10 text-sm ${errors.course ? "border-destructive focus-visible:ring-destructive/30" : ""}`}
                         {...register("course")}
                         disabled={isSubmitting}
                       />
@@ -451,7 +539,7 @@ export default function NewLoanApplicationPage() {
                         <button
                           type="button"
                           key={cr}
-                          onClick={() => setValue("course", cr)}
+                          onClick={() => setValue("course", cr, { shouldValidate: true })}
                           className={`text-[11px] px-2.5 py-0.5 rounded-full border transition-all ${
                             watchedCourse === cr
                               ? "bg-primary text-primary-foreground border-primary font-medium shadow-xs"
@@ -493,14 +581,20 @@ export default function NewLoanApplicationPage() {
                   <div className="relative flex items-center max-w-[220px]">
                     <Award className="absolute left-3.5 h-4 w-4 text-amber-500 pointer-events-none z-10" />
                     <Input
-                      type="number"
-                      min="0"
-                      max="720"
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={3}
                       placeholder="e.g. 520"
-                      className="pl-10 font-mono text-sm"
+                      className={`pl-10 font-mono text-sm ${errors.neetScore ? "border-destructive focus-visible:ring-destructive/30" : ""}`}
                       {...register("neetScore", {
                         setValueAs: (v) => (v === "" || v === null || isNaN(Number(v)) ? null : Number(v)),
+                        onChange: (e) => {
+                          const digits = e.target.value.replace(/\D/g, "").slice(0, 3);
+                          e.target.value = digits;
+                          setValue("neetScore", digits === "" ? null : Number(digits), { shouldValidate: true });
+                        },
                       })}
+                      onKeyDown={handleNumericKeyDown}
                       disabled={isSubmitting}
                     />
                   </div>
@@ -542,12 +636,19 @@ export default function NewLoanApplicationPage() {
                         ₹
                       </span>
                       <Input
-                        type="number"
-                        step="50000"
-                        min="10000"
+                        type="text"
+                        inputMode="numeric"
                         placeholder="e.g. 2500000"
-                        className="pl-9 font-mono text-base font-semibold"
-                        {...register("loanAmount", { valueAsNumber: true })}
+                        className={`pl-9 font-mono text-base font-semibold ${errors.loanAmount ? "border-destructive focus-visible:ring-destructive/30" : ""}`}
+                        {...register("loanAmount", {
+                          setValueAs: (v) => (v === "" || isNaN(Number(v)) ? 0 : Number(v)),
+                          onChange: (e) => {
+                            const digits = e.target.value.replace(/\D/g, "");
+                            e.target.value = digits;
+                            setValue("loanAmount", Number(digits || 0), { shouldValidate: true });
+                          },
+                        })}
+                        onKeyDown={handleNumericKeyDown}
                         disabled={isSubmitting}
                       />
                     </div>
@@ -559,7 +660,7 @@ export default function NewLoanApplicationPage() {
                         <button
                           type="button"
                           key={amt}
-                          onClick={() => setValue("loanAmount", amt)}
+                          onClick={() => setValue("loanAmount", amt, { shouldValidate: true })}
                           className="text-[10px] px-2 py-0.5 rounded-md border border-border/60 bg-muted/40 hover:bg-muted text-muted-foreground transition-colors"
                         >
                           ₹{(amt / 100000).toFixed(0)} Lakhs
@@ -596,7 +697,7 @@ export default function NewLoanApplicationPage() {
                   <Textarea
                     placeholder="Enter Co-Applicant Name, Occupation (e.g. Govt Employee / Farmer / Businessman), Monthly/Annual Income, Employer/Business name, and any collateral/property details..."
                     rows={3}
-                    className="text-xs resize-none"
+                    className={`text-xs resize-none ${errors.coApplicantDetails ? "border-destructive focus-visible:ring-destructive/30" : ""}`}
                     {...register("coApplicantDetails")}
                     disabled={isSubmitting}
                   />
