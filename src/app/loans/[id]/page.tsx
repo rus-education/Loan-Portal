@@ -94,18 +94,6 @@ interface LoanDetail {
   updatedAt: string;
 }
 
-const WORKFLOW_STAGES = [
-  "Initial Inquiry",
-  "Document Collection",
-  "Credit Evaluation",
-  "Bank Submission",
-  "Underwriting Review",
-  "Sanction Letter Issued",
-  "Disbursement in Progress",
-  "Loan Disbursed",
-  "Closed",
-];
-
 const WORKFLOW_STATUSES: WorkflowStatus[] = [
   "Closed",
   "Deffered",
@@ -137,7 +125,6 @@ export default function LoanDetailPage() {
 
   // Admin managed state
   const [adminStatus, setAdminStatus] = React.useState<WorkflowStatus>("Logged in");
-  const [adminStage, setAdminStage] = React.useState<string>("Initial Inquiry");
   const router = useRouter();
   const [adminRemarks, setAdminRemarks] = React.useState<string>("");
   const [transitionNote, setTransitionNote] = React.useState<string>("");
@@ -189,7 +176,6 @@ export default function LoanDetailPage() {
         const l: LoanDetail = data.data;
         setLoan(l);
         setAdminStatus(l.status);
-        setAdminStage(l.currentStage || "Initial Inquiry");
         setAdminRemarks(l.adminRemarks || "");
 
         // Sync correction form
@@ -224,11 +210,10 @@ export default function LoanDetailPage() {
   const hasAdminChanges =
     loan &&
     (adminStatus !== loan.status ||
-      adminStage !== loan.currentStage ||
       adminRemarks !== (loan.adminRemarks || "") ||
       transitionNote.trim().length > 0);
 
-  // Handle Admin update: Status, Admin Remarks, Current Stage
+  // Handle Admin update: Status, Admin Remarks
   const handleSaveAdminDecision = async () => {
     if (!loan) return;
     setIsAdminSaving(true);
@@ -238,7 +223,7 @@ export default function LoanDetailPage() {
     try {
       const payload: Record<string, unknown> = {
         status: adminStatus,
-        currentStage: adminStage,
+        currentStage: adminStatus,
         adminRemarks: adminRemarks,
       };
 
@@ -261,7 +246,6 @@ export default function LoanDetailPage() {
 
       setLoan(data.data);
       setAdminStatus(data.data.status);
-      setAdminStage(data.data.currentStage);
       setAdminRemarks(data.data.adminRemarks || "");
       setTransitionNote("");
       setAdminSaveSuccess("Administrative decision and workflow status updated successfully.");
@@ -807,7 +791,7 @@ export default function LoanDetailPage() {
                       <span>Underwriting & Workflow Adjudication Panel</span>
                     </CardTitle>
                     <CardDescription className="text-xs">
-                      Update workflow status, assign current processing stage milestone, and record official admin remarks
+                      Update workflow status and record official admin remarks
                     </CardDescription>
                   </div>
                   <Badge variant={getStatusBadgeVariant(adminStatus)} className="self-start sm:self-auto px-2.5 py-1 text-xs">
@@ -817,49 +801,25 @@ export default function LoanDetailPage() {
               </CardHeader>
 
               <CardContent className="p-5 space-y-4">
-                {/* Status and Stage Dropdowns */}
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {/* Workflow Status Selector */}
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-foreground flex items-center justify-between">
-                      <span>Change Workflow Status</span>
-                      <span className="text-[10px] text-muted-foreground font-normal">
-                        Select new operational state
-                      </span>
-                    </label>
-                    <Select
-                      value={adminStatus}
-                      onChange={(e) => setAdminStatus(e.target.value as WorkflowStatus)}
-                      className="h-9 text-xs font-medium"
-                    >
-                      {WORKFLOW_STATUSES.map((st) => (
-                        <option key={st} value={st}>
-                          {st}
-                        </option>
-                      ))}
-                    </Select>
-                  </div>
-
-                  {/* Processing Stage Selector */}
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-foreground flex items-center justify-between">
-                      <span>Update Processing Stage</span>
-                      <span className="text-[10px] text-muted-foreground font-normal">
-                        Underwriting milestone
-                      </span>
-                    </label>
-                    <Select
-                      value={adminStage}
-                      onChange={(e) => setAdminStage(e.target.value)}
-                      className="h-9 text-xs font-medium"
-                    >
-                      {WORKFLOW_STAGES.map((stage) => (
-                        <option key={stage} value={stage}>
-                          {stage}
-                        </option>
-                      ))}
-                    </Select>
-                  </div>
+                {/* Workflow Status Selector */}
+                <div className="space-y-1.5 max-w-md">
+                  <label className="text-xs font-semibold text-foreground flex items-center justify-between">
+                    <span>Change Workflow Status</span>
+                    <span className="text-[10px] text-muted-foreground font-normal">
+                      Select new operational state
+                    </span>
+                  </label>
+                  <Select
+                    value={adminStatus}
+                    onChange={(e) => setAdminStatus(e.target.value as WorkflowStatus)}
+                    className="h-9 text-xs font-medium"
+                  >
+                    {WORKFLOW_STATUSES.map((st) => (
+                      <option key={st} value={st}>
+                        {st}
+                      </option>
+                    ))}
+                  </Select>
                 </div>
 
                 {/* Admin Remarks Editor */}
@@ -926,7 +886,6 @@ export default function LoanDetailPage() {
                         size="sm"
                         onClick={() => {
                           setAdminStatus(loan.status);
-                          setAdminStage(loan.currentStage);
                           setAdminRemarks(loan.adminRemarks || "");
                           setTransitionNote("");
                         }}
