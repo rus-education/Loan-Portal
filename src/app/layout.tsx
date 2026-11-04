@@ -17,7 +17,11 @@ export const metadata: Metadata = {
   description:
     "Production-ready RUS EDUCATION LOAN PORTAL with multi-branch isolation, server-side RBAC, and streamlined audit workflows.",
   icons: {
-    icon: "/logo.png",
+    icon: [
+      { url: "/icon.png", type: "image/png" },
+      { url: "/logo.png", type: "image/png" },
+      { url: "/favicon.ico" },
+    ],
     shortcut: "/logo.png",
     apple: "/logo.png",
   },
