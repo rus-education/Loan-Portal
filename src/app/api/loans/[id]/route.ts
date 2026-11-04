@@ -135,11 +135,30 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
         if (key !== "_id" && key !== "createdAt" && key !== "createdBy" && key !== "statusHistory") {
           oldValue[key] = (loan as unknown as Record<string, unknown>)[key];
           (loan as unknown as Record<string, unknown>)[key] = val;
+          loan.set(key, val);
+          loan.markModified(key);
           newValue[key] = val;
         }
       }
+      if ("parentName" in body) {
+        const pName = typeof body.parentName === "string" ? body.parentName.trim() : "";
+        loan.parentName = pName;
+        loan.set("parentName", pName);
+        loan.markModified("parentName");
+        newValue.parentName = pName;
+      }
+      if ("cibilScore" in body) {
+        const parsed =
+          body.cibilScore === null || body.cibilScore === "" || isNaN(Number(body.cibilScore))
+            ? null
+            : Number(body.cibilScore);
+        loan.cibilScore = parsed;
+        loan.set("cibilScore", parsed);
+        loan.markModified("cibilScore");
+        newValue.cibilScore = parsed;
+      }
     } else if (user.role === "ADMIN") {
-      // Admin updates workflow status, admin remarks, and processing stage
+      // Admin updates workflow status, admin remarks, parent name, cibil score, and processing stage
       if ("status" in body) {
         oldValue.status = loan.status;
         if (body.status !== loan.status) {
@@ -157,22 +176,31 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
           });
         }
         loan.status = body.status;
+        loan.set("status", body.status);
+        loan.markModified("status");
         newValue.status = body.status;
       }
       if ("adminRemarks" in body) {
         oldValue.adminRemarks = loan.adminRemarks;
         loan.adminRemarks = body.adminRemarks;
+        loan.set("adminRemarks", body.adminRemarks);
+        loan.markModified("adminRemarks");
         newValue.adminRemarks = body.adminRemarks;
       }
       if ("currentStage" in body) {
         oldValue.currentStage = loan.currentStage;
         loan.currentStage = body.currentStage;
+        loan.set("currentStage", body.currentStage);
+        loan.markModified("currentStage");
         newValue.currentStage = body.currentStage;
       }
       if ("parentName" in body) {
         oldValue.parentName = loan.parentName;
-        loan.parentName = typeof body.parentName === "string" ? body.parentName.trim() : "";
-        newValue.parentName = loan.parentName;
+        const pName = typeof body.parentName === "string" ? body.parentName.trim() : "";
+        loan.parentName = pName;
+        loan.set("parentName", pName);
+        loan.markModified("parentName");
+        newValue.parentName = pName;
       }
       if ("cibilScore" in body) {
         oldValue.cibilScore = loan.cibilScore;
@@ -181,9 +209,23 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
             ? null
             : Number(body.cibilScore);
         loan.cibilScore = parsedCibil;
+        loan.set("cibilScore", parsedCibil);
+        loan.markModified("cibilScore");
         newValue.cibilScore = parsedCibil;
       }
     } else if (user.role === "BRANCH_USER") {
+      // Branch user can NEVER modify parentName or cibilScore
+      if ("parentName" in body || "cibilScore" in body) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Forbidden: Branch users cannot change Parent Name or CIBIL Score. These details are filled by admin only and are strictly read-only for branch users.",
+            code: "FORBIDDEN_ADMIN_FIELD",
+          },
+          { status: 403 }
+        );
+      }
+
       // Branch user updates branch remarks and application fields, but NEVER status or adminRemarks
       const branchEditableFields = [
         "studentName",
@@ -211,6 +253,8 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
         if (field in body) {
           oldValue[field] = (loan as unknown as Record<string, unknown>)[field];
           (loan as unknown as Record<string, unknown>)[field] = body[field];
+          loan.set(field, body[field]);
+          loan.markModified(field);
           newValue[field] = body[field];
         }
       }
@@ -219,10 +263,31 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     loan.updatedBy = user.id as unknown as typeof loan.updatedBy;
     await loan.save();
 
+    // Direct MongoDB persistence safety net to guarantee parentName and cibilScore are saved in MongoDB
+    if (user.role === "ADMIN" || user.role === "SUPERADMIN") {
+      const directAdminUpdates: Record<string, unknown> = {};
+      if ("parentName" in body) {
+        directAdminUpdates.parentName = typeof body.parentName === "string" ? body.parentName.trim() : "";
+      }
+      if ("cibilScore" in body) {
+        directAdminUpdates.cibilScore =
+          body.cibilScore === null || body.cibilScore === "" || isNaN(Number(body.cibilScore))
+            ? null
+            : Number(body.cibilScore);
+      }
+      if (Object.keys(directAdminUpdates).length > 0) {
+        await LoanApplication.collection.updateOne(
+          { _id: new Types.ObjectId(id) },
+          { $set: directAdminUpdates }
+        );
+      }
+    }
+
     const updatedDoc = await LoanApplication.findById(id)
       .populate("branchId", "name code")
       .populate("createdBy", "name email role")
-      .populate("updatedBy", "name email role");
+      .populate("updatedBy", "name email role")
+      .lean();
 
     // Audit log update
     await logAuditEvent({

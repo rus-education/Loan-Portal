@@ -227,6 +227,7 @@ const LoanApplicationSchema = new Schema<ILoanApplication>(
   },
   {
     timestamps: true,
+    strict: false,
   }
 );
 
@@ -244,6 +245,11 @@ LoanApplicationSchema.index({ email: 1 });
 LoanApplicationSchema.index({ pincode: 1 });
 LoanApplicationSchema.index({ loanAmount: -1, _id: -1 });
 LoanApplicationSchema.index({ branchId: 1, sdmId: 1 });
+
+// Ensure in Next.js dev server that the model is recompiled if schema fields change
+if (mongoose.models && mongoose.models.LoanApplication) {
+  delete (mongoose.models as any).LoanApplication;
+}
 
 export const LoanApplication: Model<ILoanApplication> =
   mongoose.models.LoanApplication ||

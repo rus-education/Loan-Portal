@@ -117,7 +117,7 @@ export function validateLoanUpdatePermissions(
     if ("parentName" in updateFields || "cibilScore" in updateFields) {
       return {
         allowed: false,
-        reason: "Branch users cannot modify Parent Name or CIBIL Score. These are admin-managed fields.",
+        reason: "Branch users cannot change Parent Name or CIBIL Score. These details are filled by admin only and are strictly read-only for branch users.",
       };
     }
     if ("branchId" in updateFields) {

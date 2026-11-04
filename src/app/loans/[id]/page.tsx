@@ -726,8 +726,13 @@ export default function LoanDetailPage() {
                   <span className="text-muted-foreground">SDM Identification:</span>
                   <span className="font-mono font-bold text-primary">{loan.sdmId}</span>
                 </div>
-                <div className="flex justify-between py-1.5 border-b border-border/40">
-                  <span className="text-muted-foreground">Parent Name:</span>
+                <div className="flex justify-between items-center py-1.5 border-b border-border/40">
+                  <span className="text-muted-foreground flex items-center gap-1.5">
+                    <span>Parent Name:</span>
+                    <Badge variant="outline" className="text-[9px] px-1.5 py-0 border-blue-500/30 text-blue-600 dark:text-blue-400 bg-blue-500/10 font-normal flex items-center gap-0.5">
+                      <Lock className="h-2.5 w-2.5" /> Admin Only
+                    </Badge>
+                  </span>
                   <span className="font-semibold text-foreground">
                     {loan.parentName ? (
                       loan.parentName
@@ -738,8 +743,13 @@ export default function LoanDetailPage() {
                     )}
                   </span>
                 </div>
-                <div className="flex justify-between py-1.5 border-b border-border/40">
-                  <span className="text-muted-foreground">CIBIL Score:</span>
+                <div className="flex justify-between items-center py-1.5 border-b border-border/40">
+                  <span className="text-muted-foreground flex items-center gap-1.5">
+                    <span>CIBIL Score:</span>
+                    <Badge variant="outline" className="text-[9px] px-1.5 py-0 border-blue-500/30 text-blue-600 dark:text-blue-400 bg-blue-500/10 font-normal flex items-center gap-0.5">
+                      <Lock className="h-2.5 w-2.5" /> Admin Only
+                    </Badge>
+                  </span>
                   {loan.cibilScore !== undefined && loan.cibilScore !== null ? (
                     <div className="flex items-center gap-1.5">
                       <span
@@ -782,6 +792,14 @@ export default function LoanDetailPage() {
                     {loan.branchId?.name} ({loan.branchId?.code})
                   </span>
                 </div>
+                {!isAdminOrSuper && (
+                  <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-2.5 py-1.5 text-[11px] text-amber-800 dark:text-amber-200 flex items-center gap-1.5 mt-2">
+                    <Lock className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+                    <span>
+                      <strong>Branch Notice:</strong> Parent Name & CIBIL Score are filled by Admin only and cannot be modified by branch users.
+                    </span>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -916,8 +934,8 @@ export default function LoanDetailPage() {
                         Parent Profile & Credit Assessment (Admin Only)
                       </span>
                     </div>
-                    <Badge variant="outline" className="text-[10px] border-primary/30 text-primary font-medium w-fit">
-                      Visible to Branch User once filled
+                    <Badge variant="outline" className="text-[10px] border-blue-500/40 bg-blue-500/10 text-blue-700 dark:text-blue-300 font-medium w-fit flex items-center gap-1">
+                      <Lock className="h-3 w-3 text-blue-600" /> Admin Only • Read-Only for Branch Users
                     </Badge>
                   </div>
 
@@ -935,8 +953,9 @@ export default function LoanDetailPage() {
                         onChange={(e) => setAdminParentName(e.target.value)}
                         className="h-9 text-xs bg-background"
                       />
-                      <p className="text-[10px] text-muted-foreground">
-                        Filled by Admin only • Shown below Student ID section
+                      <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                        <Lock className="h-2.5 w-2.5 text-muted-foreground/70" />
+                        Filled by Admin only • Branch users can view but cannot edit
                       </p>
                     </div>
 
@@ -978,8 +997,9 @@ export default function LoanDetailPage() {
                         }}
                         className="h-9 font-mono text-xs font-semibold bg-background"
                       />
-                      <p className="text-[10px] text-muted-foreground">
-                        Filled by Admin only • Credit bureau score
+                      <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                        <Lock className="h-2.5 w-2.5 text-muted-foreground/70" />
+                        Filled by Admin only • Branch users can view but cannot edit
                       </p>
                     </div>
                   </div>
@@ -1111,6 +1131,12 @@ export default function LoanDetailPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-4 space-y-3 text-xs">
+                <div className="rounded-xl border border-blue-500/30 bg-blue-500/10 p-3 text-xs text-blue-900 dark:text-blue-200 flex items-start gap-2.5 mb-2">
+                  <Lock className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+                  <div className="leading-relaxed">
+                    <span className="font-semibold">Branch Access Restriction Notice:</span> Parent Name, CIBIL Score, and administrative remarks are managed exclusively by the Central Administration. Branch counselors have strictly read-only access to these verified entries and cannot modify them.
+                  </div>
+                </div>
                 <div className="flex justify-between py-1.5 border-b border-border/40">
                   <span className="text-muted-foreground">Admin Verified Parent Name:</span>
                   <span className="font-semibold text-foreground">
