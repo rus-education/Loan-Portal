@@ -14,18 +14,26 @@ export interface ILoanApplication extends Document {
   sdmId: string;
   studentName: string;
   contactNumber: string;
-  branchId: Types.ObjectId;
-  course: string;
+  email?: string;
+  residentialAddress?: string;
+  pincode?: string;
   country: string;
+  universityCollege?: string;
+  course: string;
+  courseDuration?: string;
   loanAmount: number;
-  intakeMonth: string;
-  intakeYear: number;
-  parentGuardianIncomeSource: string;
+  neetScore?: number | null;
+  coApplicantRelation?: string;
+  coApplicantDetails?: string;
+  branchId: Types.ObjectId;
+  intakeMonth?: string;
+  intakeYear?: number;
+  parentGuardianIncomeSource?: string;
   currentStage: string;
   status: WorkflowStatus;
   statusHistory: IStatusHistoryItem[];
-  branchRemarks: string;
-  adminRemarks: string;
+  branchRemarks?: string;
+  adminRemarks?: string;
   createdBy: Types.ObjectId;
   updatedBy?: Types.ObjectId | null;
   createdAt: Date;
@@ -53,16 +61,23 @@ const LoanApplicationSchema = new Schema<ILoanApplication>(
       trim: true,
       index: true,
     },
-    branchId: {
-      type: Schema.Types.ObjectId,
-      ref: "Branch",
-      required: [true, "Branch reference is required"],
+    email: {
+      type: String,
+      trim: true,
+      lowercase: true,
+      default: "",
       index: true,
     },
-    course: {
+    residentialAddress: {
       type: String,
-      required: [true, "Course is required"],
       trim: true,
+      default: "",
+    },
+    pincode: {
+      type: String,
+      trim: true,
+      default: "",
+      index: true,
     },
     country: {
       type: String,
@@ -70,26 +85,63 @@ const LoanApplicationSchema = new Schema<ILoanApplication>(
       trim: true,
       index: true,
     },
+    universityCollege: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    course: {
+      type: String,
+      required: [true, "Course is required"],
+      trim: true,
+    },
+    courseDuration: {
+      type: String,
+      trim: true,
+      default: "",
+    },
     loanAmount: {
       type: Number,
       required: [true, "Loan amount required is required"],
       min: [0, "Loan amount cannot be negative"],
     },
+    neetScore: {
+      type: Number,
+      default: null,
+      min: 0,
+      max: 720,
+    },
+    coApplicantRelation: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    coApplicantDetails: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    branchId: {
+      type: Schema.Types.ObjectId,
+      ref: "Branch",
+      required: [true, "Branch reference is required"],
+      index: true,
+    },
     intakeMonth: {
       type: String,
-      required: [true, "Intake month is required"],
       trim: true,
+      default: "September",
     },
     intakeYear: {
       type: Number,
-      required: [true, "Intake year is required"],
+      default: () => new Date().getFullYear(),
       min: [2000, "Invalid intake year"],
       max: [2100, "Invalid intake year"],
     },
     parentGuardianIncomeSource: {
       type: String,
-      required: [true, "Parent/Guardian income source is required"],
       trim: true,
+      default: "Family / Co-Applicant",
     },
     currentStage: {
       type: String,
@@ -162,6 +214,8 @@ LoanApplicationSchema.index({ intakeYear: 1, intakeMonth: 1, createdAt: -1 });
 LoanApplicationSchema.index({ sdmId: 1 });
 LoanApplicationSchema.index({ studentName: 1 });
 LoanApplicationSchema.index({ contactNumber: 1 });
+LoanApplicationSchema.index({ email: 1 });
+LoanApplicationSchema.index({ pincode: 1 });
 LoanApplicationSchema.index({ loanAmount: -1, _id: -1 });
 LoanApplicationSchema.index({ branchId: 1, sdmId: 1 });
 

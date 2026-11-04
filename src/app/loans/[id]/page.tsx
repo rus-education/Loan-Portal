@@ -50,6 +50,9 @@ interface LoanDetail {
   sdmId: string;
   studentName: string;
   contactNumber: string;
+  email?: string;
+  residentialAddress?: string;
+  pincode?: string;
   branchId: {
     _id: string;
     name: string;
@@ -57,8 +60,13 @@ interface LoanDetail {
     status: string;
   };
   course: string;
+  universityCollege?: string;
+  courseDuration?: string;
   country: string;
   loanAmount: number;
+  neetScore?: number | null;
+  coApplicantRelation?: string;
+  coApplicantDetails?: string;
   intakeMonth: string;
   intakeYear: number;
   parentGuardianIncomeSource: string;
@@ -657,10 +665,10 @@ export default function LoanDetailPage() {
               <CardHeader className="pb-3 border-b border-border/50">
                 <CardTitle className="text-sm font-semibold flex items-center gap-2 text-foreground">
                   <User className="h-4 w-4 text-primary" />
-                  Student Identity & Co-Applicant
+                  <span>Student Identity & Co-Applicant (Parent)</span>
                 </CardTitle>
                 <CardDescription className="text-xs">
-                  Applicant contact and financial sponsor credentials
+                  Applicant contact, Aadhaar residential record, and co-borrower particulars
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-4 space-y-3 text-xs">
@@ -670,29 +678,44 @@ export default function LoanDetailPage() {
                 </div>
                 <div className="flex justify-between py-1.5 border-b border-border/40">
                   <span className="text-muted-foreground">Contact Phone:</span>
-                  <span className="font-mono font-medium text-foreground">{loan.contactNumber}</span>
+                  <span className="font-mono font-medium text-foreground">+91 {loan.contactNumber}</span>
                 </div>
+                {loan.email && (
+                  <div className="flex justify-between py-1.5 border-b border-border/40">
+                    <span className="text-muted-foreground">Email ID:</span>
+                    <span className="font-mono text-foreground">{loan.email}</span>
+                  </div>
+                )}
+                {loan.residentialAddress && (
+                  <div className="flex flex-col gap-1 py-1.5 border-b border-border/40">
+                    <span className="text-muted-foreground">Residential Address (Aadhaar):</span>
+                    <span className="font-medium text-foreground bg-muted/30 p-2 rounded-lg border border-border/50 leading-relaxed">
+                      {loan.residentialAddress} {loan.pincode ? `• PIN: ${loan.pincode}` : ""}
+                    </span>
+                  </div>
+                )}
+                {loan.coApplicantRelation && (
+                  <div className="flex justify-between py-1.5 border-b border-border/40">
+                    <span className="text-muted-foreground">Co-Applicant Relation:</span>
+                    <span className="font-semibold text-primary">{loan.coApplicantRelation}</span>
+                  </div>
+                )}
+                {loan.coApplicantDetails && (
+                  <div className="flex flex-col gap-1 py-1.5 border-b border-border/40">
+                    <span className="text-muted-foreground">Co-Applicant Details:</span>
+                    <span className="font-medium text-foreground bg-muted/30 p-2 rounded-lg border border-border/50 leading-relaxed">
+                      {loan.coApplicantDetails}
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-between py-1.5 border-b border-border/40">
                   <span className="text-muted-foreground">SDM Identification:</span>
                   <span className="font-mono font-bold text-primary">{loan.sdmId}</span>
                 </div>
-                <div className="flex justify-between py-1.5 border-b border-border/40">
+                <div className="flex justify-between py-1.5">
                   <span className="text-muted-foreground">Originating Branch:</span>
                   <span className="font-medium text-foreground">
                     {loan.branchId?.name} ({loan.branchId?.code})
-                  </span>
-                </div>
-                <div className="flex justify-between py-1.5 border-b border-border/40">
-                  <span className="text-muted-foreground">Parent/Guardian Income Source:</span>
-                  <span className="font-semibold text-foreground">
-                    {loan.parentGuardianIncomeSource}
-                  </span>
-                </div>
-                <div className="flex justify-between py-1.5">
-                  <span className="text-muted-foreground">Originated By Officer:</span>
-                  <span className="text-foreground">
-                    {loan.createdBy?.name || "Branch Counselor"} (
-                    {loan.createdBy?.email || "Branch Desk"})
                   </span>
                 </div>
               </CardContent>
@@ -703,31 +726,41 @@ export default function LoanDetailPage() {
               <CardHeader className="pb-3 border-b border-border/50">
                 <CardTitle className="text-sm font-semibold flex items-center gap-2 text-foreground">
                   <GraduationCap className="h-4 w-4 text-primary" />
-                  Academic Program & Loan Request
+                  <span>Academic Program & Loan Request</span>
                 </CardTitle>
                 <CardDescription className="text-xs">
                   Course details, destination territory, and sanction requirement
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-4 space-y-3 text-xs">
+                {loan.universityCollege && (
+                  <div className="flex justify-between py-1.5 border-b border-border/40">
+                    <span className="text-muted-foreground">University / College:</span>
+                    <span className="font-semibold text-foreground">{loan.universityCollege}</span>
+                  </div>
+                )}
                 <div className="flex justify-between py-1.5 border-b border-border/40">
                   <span className="text-muted-foreground">Course / Degree:</span>
-                  <span className="font-semibold text-foreground">{loan.course}</span>
+                  <span className="font-semibold text-foreground">
+                    {loan.course} {loan.courseDuration ? `(${loan.courseDuration})` : ""}
+                  </span>
                 </div>
                 <div className="flex justify-between py-1.5 border-b border-border/40">
                   <span className="text-muted-foreground">Destination Country:</span>
                   <span className="font-semibold text-foreground">{loan.country}</span>
                 </div>
+                {loan.neetScore !== undefined && loan.neetScore !== null && (
+                  <div className="flex justify-between py-1.5 border-b border-border/40">
+                    <span className="text-muted-foreground">NEET Score:</span>
+                    <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                      {loan.neetScore} / 720
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-between py-1.5 border-b border-border/40">
-                  <span className="text-muted-foreground">Sanction Requested:</span>
-                  <span className="font-mono font-bold text-foreground">
+                  <span className="text-muted-foreground">Loan Requirement:</span>
+                  <span className="font-mono font-bold text-primary text-sm">
                     {formatCurrency(loan.loanAmount)}
-                  </span>
-                </div>
-                <div className="flex justify-between py-1.5 border-b border-border/40">
-                  <span className="text-muted-foreground">Target Intake:</span>
-                  <span className="text-foreground font-medium">
-                    {loan.intakeMonth} {loan.intakeYear}
                   </span>
                 </div>
                 <div className="flex justify-between py-1.5 border-b border-border/40">
@@ -735,8 +768,10 @@ export default function LoanDetailPage() {
                   <span className="text-muted-foreground">{formatDateTime(loan.createdAt)}</span>
                 </div>
                 <div className="flex justify-between py-1.5">
-                  <span className="text-muted-foreground">Last System Update:</span>
-                  <span className="text-muted-foreground">{formatDateTime(loan.updatedAt)}</span>
+                  <span className="text-muted-foreground">Originated By Officer:</span>
+                  <span className="text-foreground">
+                    {loan.createdBy?.name || "Branch Counselor"}
+                  </span>
                 </div>
               </CardContent>
             </Card>

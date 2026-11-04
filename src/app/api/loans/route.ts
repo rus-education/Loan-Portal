@@ -9,16 +9,24 @@ import { hasPermission } from "@/lib/rbac";
 import { logAuditEvent } from "@/lib/audit";
 
 const createLoanSchema = z.object({
-  sdmId: z.string().min(1, "SDM ID is required").trim(),
   studentName: z.string().min(1, "Student name is required").trim(),
   contactNumber: z.string().min(1, "Contact number is required").trim(),
-  branchId: z.string().optional(),
-  course: z.string().min(1, "Course is required").trim(),
+  email: z.string().email().optional().or(z.literal("")),
+  residentialAddress: z.string().optional().default(""),
+  pincode: z.string().optional().default(""),
   country: z.string().min(1, "Country is required").trim(),
+  universityCollege: z.string().optional().default(""),
+  course: z.string().min(1, "Course is required").trim(),
+  courseDuration: z.string().optional().default(""),
   loanAmount: z.number().min(0, "Loan amount cannot be negative"),
-  intakeMonth: z.string().min(1, "Intake month is required").trim(),
-  intakeYear: z.number().int().min(2000).max(2100),
-  parentGuardianIncomeSource: z.string().min(1, "Parent/Guardian income source is required").trim(),
+  neetScore: z.number().nullable().optional(),
+  coApplicantRelation: z.string().optional().default(""),
+  coApplicantDetails: z.string().optional().default(""),
+  sdmId: z.string().trim().optional(),
+  branchId: z.string().optional(),
+  intakeMonth: z.string().trim().optional().default("September"),
+  intakeYear: z.number().int().optional().default(() => new Date().getFullYear()),
+  parentGuardianIncomeSource: z.string().trim().optional().default("Family / Co-Applicant"),
   currentStage: z.string().trim().default("Initial Inquiry"),
   branchRemarks: z.string().trim().default(""),
 });
@@ -259,18 +267,32 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const finalSdmId =
+      data.sdmId?.trim() ||
+      `SDM-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
+
     // Create loan application with workflow status initialized strictly to 'Pending'
     const newLoan = await LoanApplication.create({
-      sdmId: data.sdmId,
+      sdmId: finalSdmId,
       studentName: data.studentName,
       contactNumber: data.contactNumber,
+      email: data.email || "",
+      residentialAddress: data.residentialAddress || "",
+      pincode: data.pincode || "",
       branchId: targetBranchId,
       course: data.course,
+      universityCollege: data.universityCollege || "",
+      courseDuration: data.courseDuration || "",
       country: data.country,
       loanAmount: data.loanAmount,
-      intakeMonth: data.intakeMonth,
-      intakeYear: data.intakeYear,
-      parentGuardianIncomeSource: data.parentGuardianIncomeSource,
+      neetScore: data.neetScore !== undefined ? data.neetScore : null,
+      coApplicantRelation: data.coApplicantRelation || "",
+      coApplicantDetails: data.coApplicantDetails || "",
+      intakeMonth: data.intakeMonth || "September",
+      intakeYear: data.intakeYear || new Date().getFullYear(),
+      parentGuardianIncomeSource:
+        data.parentGuardianIncomeSource ||
+        (data.coApplicantDetails ? `Co-Applicant (${data.coApplicantRelation || "Parent"})` : "Family Income"),
       currentStage: data.currentStage || "Initial Inquiry",
       status: "Pending", // Always begins in Pending
       statusHistory: [
