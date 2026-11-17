@@ -79,6 +79,7 @@ export default function LoginPage() {
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
+        credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
@@ -91,11 +92,20 @@ export default function LoginPage() {
         return;
       }
 
+      // Store backup token in client storage for resilient authorization
+      if (data?.token && typeof window !== "undefined") {
+        try {
+          sessionStorage.setItem("loan_portal_token", data.token);
+          localStorage.setItem("loan_portal_token", data.token);
+        } catch {
+          // Ignored if storage quota exceeded or restricted
+        }
+      }
+
       // Immediately sync state into React AuthContext
       if (data?.user) {
         setUser(data.user);
       }
-      await refreshSession();
 
       // Successful login
       toast.success("Authentication successful! Redirecting...");

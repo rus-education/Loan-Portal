@@ -83,3 +83,10 @@
 188. Implemented permission inheritance hierarchies where SuperAdmin inherits all permissions from Admin, Admin inherits from HO Executive, and HO Executive inherits from Branch User.
 189. Added validation within the parent-verification system to ensure Parent Name and CIBIL Score are only visible to Admin and SuperAdmin roles, while remaining strictly read-only for all other users.
 190. Verified RBAC boundaries through 100+ API tests and 30+ feature tests to ensure zero permission bypass vulnerabilities across authentication, data retrieval, update operations, and documentation workflows.
+
+### Phase 20: Production Authentication Resilience & Live Session Persistence
+191. Resolved live deployment session loss where navigating to options redirected back to /login by implementing dynamic HTTPS/protocol detection for the session cookie instead of hardcoded NODE_ENV enforcement.
+192. Added 60-second clock tolerance to JWT verification across Edge Middleware and backend handlers to prevent clock-skew session invalidation between distributed serverless instances.
+193. Standardized middleware redirects using request.nextUrl.clone() to prevent host and protocol corruption behind reverse proxies and CDNs.
+194. Implemented dual-layer authorization with client-side token fallback in apiFetch to guarantee seamless authentication even when cookies are blocked or stripped.
+195. Removed destructive cookie clearing on transient unauthenticated checks in /api/auth/me, preventing accidental session wipes during cold starts.

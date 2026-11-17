@@ -57,11 +57,26 @@ export async function apiFetch(
   input: string | URL,
   init?: RequestInit
 ): Promise<Response> {
+  let authHeader = init?.headers ? new Headers(init.headers).get("authorization") : null;
+  if (!authHeader && typeof window !== "undefined") {
+    try {
+      const storedToken =
+        sessionStorage.getItem("loan_portal_token") ||
+        localStorage.getItem("loan_portal_token");
+      if (storedToken) {
+        authHeader = `Bearer ${storedToken}`;
+      }
+    } catch {
+      // Storage access blocked or restricted
+    }
+  }
+
   const options: RequestInit = {
     ...init,
     credentials: "same-origin",
     headers: {
       "Content-Type": "application/json",
+      ...(authHeader ? { Authorization: authHeader } : {}),
       ...(init?.headers || {}),
     },
   };

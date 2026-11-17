@@ -63,9 +63,12 @@ export async function createAuthToken(payload: TokenPayload): Promise<string> {
 
 export async function verifyAuthToken(token: string): Promise<TokenPayload | null> {
   try {
-    const { payload } = await jwtVerify(token, JWT_SECRET_KEY);
+    const { payload } = await jwtVerify(token, JWT_SECRET_KEY, {
+      clockTolerance: "60s",
+    });
     return payload as unknown as TokenPayload;
-  } catch {
+  } catch (err) {
+    console.warn("[auth] Session token verification rejected:", err instanceof Error ? err.message : String(err));
     return null;
   }
 }
@@ -73,24 +76,52 @@ export async function verifyAuthToken(token: string): Promise<TokenPayload | nul
 // ----------------------------------------------------
 // Cookie Management
 // ----------------------------------------------------
-export function setAuthCookie(response: NextResponse, token: string): void {
+export function setAuthCookie(
+  response: NextResponse,
+  token: string,
+  request?: NextRequest
+): void {
+  // Dynamically detect HTTPS protocol to prevent browser cookie drops over HTTP (e.g. VPS/IP deployments)
+  let isSecure = false;
+  if (request) {
+    const proto = request.headers.get("x-forwarded-proto") || request.nextUrl.protocol;
+    isSecure = proto.startsWith("https");
+  } else if (typeof process !== "undefined" && process.env.NEXT_PUBLIC_APP_URL) {
+    isSecure = process.env.NEXT_PUBLIC_APP_URL.startsWith("https://");
+  } else {
+    isSecure = env.NODE_ENV === "production";
+  }
+
   response.cookies.set({
     name: AUTH_COOKIE_NAME,
     value: token,
     httpOnly: true,
-    secure: env.NODE_ENV === "production",
+    secure: isSecure,
     sameSite: "lax",
     path: "/",
     maxAge: 7 * 24 * 60 * 60, // 7 days in seconds
   });
 }
 
-export function clearAuthCookie(response: NextResponse): void {
+export function clearAuthCookie(
+  response: NextResponse,
+  request?: NextRequest
+): void {
+  let isSecure = false;
+  if (request) {
+    const proto = request.headers.get("x-forwarded-proto") || request.nextUrl.protocol;
+    isSecure = proto.startsWith("https");
+  } else if (typeof process !== "undefined" && process.env.NEXT_PUBLIC_APP_URL) {
+    isSecure = process.env.NEXT_PUBLIC_APP_URL.startsWith("https://");
+  } else {
+    isSecure = env.NODE_ENV === "production";
+  }
+
   response.cookies.set({
     name: AUTH_COOKIE_NAME,
     value: "",
     httpOnly: true,
-    secure: env.NODE_ENV === "production",
+    secure: isSecure,
     sameSite: "lax",
     path: "/",
     maxAge: 0,

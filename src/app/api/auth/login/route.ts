@@ -121,6 +121,7 @@ export async function POST(request: NextRequest) {
     const response = NextResponse.json({
       success: true,
       message: "Login successful",
+      token,
       user: {
         id: String(user._id),
         name: user.name,
@@ -131,8 +132,8 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Set secure HTTP-only cookie
-    setAuthCookie(response, token);
+    // Set secure HTTP-only cookie with intelligent protocol detection
+    setAuthCookie(response, token, request);
 
     // Reset rate limit counter on valid credentials
     resetRateLimit(`auth:${getClientIp(request)}:${email.toLowerCase()}`);

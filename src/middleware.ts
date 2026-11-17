@@ -62,9 +62,12 @@ export async function middleware(request: NextRequest) {
   let payload: Record<string, unknown> | null = null;
   if (token) {
     try {
-      const verified = await jwtVerify(token, JWT_SECRET_KEY);
+      const verified = await jwtVerify(token, JWT_SECRET_KEY, {
+        clockTolerance: "60s",
+      });
       payload = verified.payload as Record<string, unknown>;
-    } catch {
+    } catch (err) {
+      console.warn("[middleware] Session JWT verification rejected:", err instanceof Error ? err.message : String(err));
       payload = null;
     }
   }
@@ -72,7 +75,10 @@ export async function middleware(request: NextRequest) {
   // 4. Handle authenticated users visiting /login
   if (pathname === "/login") {
     if (payload) {
-      return NextResponse.redirect(new URL("/", request.url));
+      const homeUrl = request.nextUrl.clone();
+      homeUrl.pathname = "/";
+      homeUrl.search = "";
+      return NextResponse.redirect(homeUrl);
     }
     return NextResponse.next();
   }
@@ -90,7 +96,8 @@ export async function middleware(request: NextRequest) {
         { status: 401 }
       );
     }
-    const loginUrl = new URL("/login", request.url);
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = "/login";
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
   }
@@ -108,7 +115,9 @@ export async function middleware(request: NextRequest) {
         { status: 403 }
       );
     }
-    return NextResponse.redirect(new URL("/", request.url));
+    const homeUrl = request.nextUrl.clone();
+    homeUrl.pathname = "/";
+    return NextResponse.redirect(homeUrl);
   }
 
   // 8. Role Guard: ADMIN OR SUPERADMIN ONLY (Analytics)
@@ -122,7 +131,9 @@ export async function middleware(request: NextRequest) {
         { status: 403 }
       );
     }
-    return NextResponse.redirect(new URL("/", request.url));
+    const homeUrl = request.nextUrl.clone();
+    homeUrl.pathname = "/";
+    return NextResponse.redirect(homeUrl);
   }
 
   // 9. Role Guard: Loan Creation (/loans/new)
@@ -130,7 +141,9 @@ export async function middleware(request: NextRequest) {
     (path) => pathname === path || pathname.startsWith(path + "/")
   );
   if (isLoanCreationPath && userRole !== "SUPERADMIN" && userRole !== "BRANCH_USER") {
-    return NextResponse.redirect(new URL("/loans", request.url));
+    const loansUrl = request.nextUrl.clone();
+    loansUrl.pathname = "/loans";
+    return NextResponse.redirect(loansUrl);
   }
 
   // 10. Forward request with trusted user context in headers

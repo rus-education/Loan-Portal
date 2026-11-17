@@ -48,14 +48,37 @@ export function AuthProvider({
         setIsError(false);
         setErrorMessage(null);
 
+        let authHeader: string | undefined;
+        if (typeof window !== "undefined") {
+          try {
+            const stored =
+              sessionStorage.getItem("loan_portal_token") ||
+              localStorage.getItem("loan_portal_token");
+            if (stored) {
+              authHeader = `Bearer ${stored}`;
+            }
+          } catch {
+            // Ignored
+          }
+        }
+
         const res = await fetch("/api/auth/me", {
           method: "GET",
           credentials: "same-origin",
-          headers: { "Cache-Control": "no-cache" },
+          headers: {
+            "Cache-Control": "no-cache",
+            ...(authHeader ? { Authorization: authHeader } : {}),
+          },
         });
 
         if (res.status === 401) {
           // Explicitly unauthenticated or expired
+          if (typeof window !== "undefined") {
+            try {
+              sessionStorage.removeItem("loan_portal_token");
+              localStorage.removeItem("loan_portal_token");
+            } catch {}
+          }
           setUser(null);
           return null;
         }
@@ -102,6 +125,12 @@ export function AuthProvider({
   // Subscribe to 401 session expiration from apiFetch
   React.useEffect(() => {
     const unsubscribe = onAuthExpired(() => {
+      if (typeof window !== "undefined") {
+        try {
+          sessionStorage.removeItem("loan_portal_token");
+          localStorage.removeItem("loan_portal_token");
+        } catch {}
+      }
       setUser(null);
       if (pathname && pathname !== "/login") {
         router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
@@ -112,6 +141,12 @@ export function AuthProvider({
 
   const logout = React.useCallback(async () => {
     try {
+      if (typeof window !== "undefined") {
+        try {
+          sessionStorage.removeItem("loan_portal_token");
+          localStorage.removeItem("loan_portal_token");
+        } catch {}
+      }
       await fetch("/api/auth/logout", {
         method: "POST",
         credentials: "same-origin",

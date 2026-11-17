@@ -2,31 +2,27 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/db";
 import { User } from "@/models/User";
 import { Branch } from "@/models/Branch";
-import { getSessionUser, clearAuthCookie } from "@/lib/auth";
+import { getSessionUser } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   try {
     const session = await getSessionUser(request);
 
     if (!session) {
-      const response = NextResponse.json(
+      return NextResponse.json(
         { success: false, error: "Not authenticated", code: "UNAUTHENTICATED" },
         { status: 401 }
       );
-      clearAuthCookie(response);
-      return response;
     }
 
     await connectToDatabase();
     const userDoc = await User.findById(session.id).lean();
 
     if (!userDoc || userDoc.status !== "active") {
-      const response = NextResponse.json(
+      return NextResponse.json(
         { success: false, error: "Account inactive or not found", code: "UNAUTHORIZED" },
         { status: 401 }
       );
-      clearAuthCookie(response);
-      return response;
     }
 
     let branchName: string | null = null;
